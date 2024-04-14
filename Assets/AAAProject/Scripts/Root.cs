@@ -27,6 +27,17 @@ namespace AAAProject.Scripts
             _entities.Add(entity.Key, entity);
         }
 
+        private static void ClearPlayerPrefs()
+        {
+            foreach (var entity in _entities)
+            {
+                for (int i = 0; i < _entities.Count; i++)
+                {
+                    PlayerPrefs.DeleteKey(entity.Key);
+                }
+            }
+        }
+
         protected override void Awake()
         {
             base.Awake();
@@ -47,6 +58,7 @@ namespace AAAProject.Scripts
 
             if (Input.GetKeyDown(KeyCode.P))
             {
+                ClearPlayerPrefs();
                 Save();
             }
         }

@@ -20,6 +20,7 @@ MonoBehaviour:
   - {fileID: 308072916322389458, guid: 3393428c5e536624e947a08fea8b8205, type: 3}
   - {fileID: -7893876076280102615, guid: 52e607ebacdbba140be00b358e7f8780, type: 3}
   - {fileID: 7388520109719202048, guid: 9475fe3c3761df64caf3849b5b172173, type: 3}
+  - {fileID: 2578104198820567628, guid: 48fdf3cafc3bcce47a890e08eca77104, type: 3}
   _entityPaths:
   - Assets/AAAProject/Prefabs/BasePrefabs/Entity.prefab
   - Assets/AAAProject/Prefabs/Camera.prefab
@@ -28,3 +29,4 @@ MonoBehaviour:
   - Assets/AAAProject/Prefabs/Player.prefab
   - Assets/AAAProject/Prefabs/Target.prefab
   - Assets/AAAProject/Prefabs/CameraAAA.prefab
+  - Assets/AAAProject/Prefabs/Enemy.prefab

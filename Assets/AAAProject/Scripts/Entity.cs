@@ -37,16 +37,6 @@ namespace AAAProject.Scripts
 
         public void Save()
         {
-            PlayerPrefs.DeleteKey(Key);
-
-            if (_ctx != null && _ctx.ChildKeys != null && _ctx.ChildKeys.Count > 0)
-            {
-                for (int i = 0; i < _ctx.ChildKeys.Count; i++)
-                {
-                    PlayerPrefs.DeleteKey(_ctx.ChildKeys[i]);
-                }
-            }
-
             NewEntityCtx();
             _ctx.ChildKeys = new List<string>();
 
@@ -129,11 +119,6 @@ namespace AAAProject.Scripts
             SetAdditionalParams();
             
             if (!_ctx.Enabled) this.gameObject.SetActive(false);
-        }
-
-        private void OnDestroy()
-        {
-            PlayerPrefs.DeleteKey(Key);
         }
     }
 }
