@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 0
+    path: Assets/AirBaseDefense/Scenes/Intro.unity
+    guid: 421865c6b76b1644bbf5c743ab8a605a
+  - enabled: 0
+    path: Assets/AirBaseDefense/Scenes/Menu.unity
+    guid: ca8e48861a83c9340bb1926651936c97
+  - enabled: 0
+    path: Assets/AirBaseDefense/Scenes/Game.unity
+    guid: 04634cd9324f01546977737dcf85c484
+  m_configObjects: {}

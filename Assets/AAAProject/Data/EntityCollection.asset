@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 006de5f9a5d5474fbd67628989481214, type: 3}
+  m_Name: EntityCollection
+  m_EditorClassIdentifier: 
+  _entities:
+  - {fileID: -8249323115547101669, guid: a9baa3e44e3529743b15ea713eb069a9, type: 3}
+  - {fileID: -6061601918969130458, guid: a268188a484427d4f902debe52d4dd72, type: 3}
+  - {fileID: 2578104198820567628, guid: ccf27a84d8ace8147993cfef94cb970b, type: 3}
+  - {fileID: 2578104198820567628, guid: f2f29915859d06b44bc088f57761cecb, type: 3}
+  - {fileID: 308072916322389458, guid: 3393428c5e536624e947a08fea8b8205, type: 3}
+  - {fileID: -7893876076280102615, guid: 52e607ebacdbba140be00b358e7f8780, type: 3}
+  - {fileID: 7388520109719202048, guid: 9475fe3c3761df64caf3849b5b172173, type: 3}
+  _entityPaths:
+  - Assets/AAAProject/Prefabs/BasePrefabs/Entity.prefab
+  - Assets/AAAProject/Prefabs/Camera.prefab
+  - Assets/AAAProject/Prefabs/Enemy.prefab
+  - Assets/AAAProject/Prefabs/EnemyMini.prefab
+  - Assets/AAAProject/Prefabs/Player.prefab
+  - Assets/AAAProject/Prefabs/Target.prefab
+  - Assets/AAAProject/Prefabs/CameraAAA.prefab
