@@ -14,19 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _entities:
   - {fileID: -8249323115547101669, guid: a9baa3e44e3529743b15ea713eb069a9, type: 3}
-  - {fileID: -6061601918969130458, guid: a268188a484427d4f902debe52d4dd72, type: 3}
   - {fileID: 2578104198820567628, guid: ccf27a84d8ace8147993cfef94cb970b, type: 3}
-  - {fileID: 2578104198820567628, guid: f2f29915859d06b44bc088f57761cecb, type: 3}
-  - {fileID: 308072916322389458, guid: 3393428c5e536624e947a08fea8b8205, type: 3}
-  - {fileID: -7893876076280102615, guid: 52e607ebacdbba140be00b358e7f8780, type: 3}
-  - {fileID: 7388520109719202048, guid: 9475fe3c3761df64caf3849b5b172173, type: 3}
-  - {fileID: 2578104198820567628, guid: 48fdf3cafc3bcce47a890e08eca77104, type: 3}
+  - {fileID: 130411623703683222, guid: 893e7c6a7e76a1f46b90362c4528d0d9, type: 3}
+  - {fileID: 6827894739331051263, guid: ed88aa29d49e6ad4f9409f24b4eab36b, type: 3}
+  - {fileID: 7563829371747917093, guid: fde6a5e53a5f8854887f9cd3e9fc39c3, type: 3}
+  - {fileID: 5553265065293053098, guid: f575fc8d7ba52cd4896f86d495c5d2a7, type: 3}
   _entityPaths:
   - Assets/AAAProject/Prefabs/BasePrefabs/Entity.prefab
-  - Assets/AAAProject/Prefabs/Camera.prefab
   - Assets/AAAProject/Prefabs/Enemy.prefab
-  - Assets/AAAProject/Prefabs/EnemyMini.prefab
-  - Assets/AAAProject/Prefabs/Player.prefab
-  - Assets/AAAProject/Prefabs/Target.prefab
-  - Assets/AAAProject/Prefabs/CameraAAA.prefab
-  - Assets/AAAProject/Prefabs/Enemy.prefab
+  - Assets/AAAProject/Prefabs/Arena.prefab
+  - Assets/AAAProject/Prefabs/Bullet.prefab
+  - Assets/AAAProject/Prefabs/Turret.prefab
+  - Assets/AAAProject/Prefabs/EnemiesManager.prefab

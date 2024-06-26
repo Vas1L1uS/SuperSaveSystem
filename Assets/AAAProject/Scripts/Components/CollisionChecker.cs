@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace AAAProject.Scripts.Components
 {
-    public class CollisionChecker : MonoBehaviour
+    public class CollisionChecker : MBehaviour
     {
         public event Action<GameObject> TriggerEntered;
         public event Action<GameObject> Trigger2DEntered;
@@ -25,6 +25,23 @@ namespace AAAProject.Scripts.Components
         [SerializeField] private List<Collider> _colliders;
         [SerializeField] private List<Collider2D> _colliders2D;
         [SerializeField] private string _componentName;
+        [Header("Debug settings")]
+        [SerializeField]private bool _enableDebug;
+
+        private void Awake()
+        {
+            if (_enableDebug)
+            {
+                TriggerEntered += obj => Debug.Log($"TriggerEntered {obj}");
+                Trigger2DEntered += obj => Debug.Log($"Trigger2DEntered {obj}");
+                CollisionEntered += obj => Debug.Log($"CollisionEntered {obj}");
+                Collision2DEntered += obj => Debug.Log($"Collision2DEntered {obj}");
+                TriggerExited += obj => Debug.Log($"TriggerExited {obj}");
+                Trigger2DExited += obj => Debug.Log($"Trigger2DExited {obj}");
+                CollisionExited += obj => Debug.Log($"CollisionExited {obj}");
+                Collision2DExited += obj => Debug.Log($"Collision2DExited {obj}");
+            }
+        }
 
         private void OnTriggerEnter(Collider other)
         {

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AAAProject.Scripts.Extensions;
 using UnityEngine;
 
 namespace AAAProject.Scripts
 {
     [DisallowMultipleComponent]
-    public class Entity : MonoBehaviour
+    public class Entity : MBehaviour
     {
         public class EntityCtx
         {
@@ -21,15 +22,13 @@ namespace AAAProject.Scripts
         public string PrefabPath => _prefabPath;
 
         [SerializeField]private string _prefabPath;
-        
-        protected EntityCtx        _ctx;
-        protected EntityCollection _entityCollection;
 
-        public void Init(string key, EntityCollection entityCollection)
+        protected EntityCtx _ctx;
+
+        public void Init(string key = null)
         {
-            _entityCollection = entityCollection;
             NewEntityCtx();
-            Key = key;
+            if (key != null || key != "") Key = key;
             Load();
             Root.AddEntity(this);
             SetCtx();
@@ -67,6 +66,12 @@ namespace AAAProject.Scripts
         {
             
         }
+
+        protected virtual void NoHasKeyOnLoad()
+        {
+            _ctx.LocalScale = Vector3.one;
+            _ctx.Enabled = true;
+        }
         
         protected virtual void NewEntityCtx()
         {
@@ -94,8 +99,7 @@ namespace AAAProject.Scripts
 
             if (!hasKey)
             {
-                _ctx.LocalScale = Vector3.one;
-                _ctx.Enabled = true;
+                NoHasKeyOnLoad();
             }
         }
 
@@ -110,9 +114,9 @@ namespace AAAProject.Scripts
                 for (var i = 0; i < _ctx.ChildKeys.Count; i++)
                 {
                     var words = _ctx.ChildKeys[i].Split('%');
-                    var newObj = Instantiate(_entityCollection.GetEntityByPath(words[0]), transform);
+                    var newObj = Instantiate(Root.GetEntityPrefabByPrefabPath(words[0]), transform);
                     newObj.name = words[2];
-                    newObj.Init(_ctx.ChildKeys[i], _entityCollection);
+                    newObj.Init(_ctx.ChildKeys[i]);
                 }
             }
 

@@ -263,7 +263,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _prefabPath: 
   _baseLevelPrefab: {fileID: 2521150130844878724, guid: 5a52f7229a683cd4fa5752bf17b83c00, type: 3}
-  _entityCollectionScrObj: {fileID: 11400000, guid: 8d23a6758d272394b8955a09b509b39c, type: 2}
+  _entityCollection: {fileID: 11400000, guid: 8d23a6758d272394b8955a09b509b39c, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

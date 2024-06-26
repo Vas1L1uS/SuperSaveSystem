@@ -5,7 +5,6 @@ using Random = UnityEngine.Random;
 
 namespace AAAProject.Scripts.Components
 {
-    //[Skip]
     public class DamageSystem : MBehaviour
     {
         public event Action<float> MaxDamageChanged

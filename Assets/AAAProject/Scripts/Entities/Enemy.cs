@@ -1,4 +1,5 @@
-﻿using AAAProject.Scripts.Components;
+﻿using System;
+using AAAProject.Scripts.Components;
 using UnityEngine;
 
 namespace AAAProject.Scripts.Entities
@@ -8,25 +9,55 @@ namespace AAAProject.Scripts.Entities
     {
         public class EnemyCtx : EntityCtx
         {
-            public string  TargetKey;
-            public Vector3 Velocity;
-            public Vector3 AngularVelocity;
+            public string TargetKey;
+            public float  CurrentHealth;
+            public float  CurrentReloadTime;
         }
-        
-        [SerializeField]private MovementController _movementController;
-        [SerializeField]private Entity          _target;
+
+        public event Action Died;
+
+        [SerializeField]private MeleeController             _meleeController;
+        [SerializeField]private HealthSystem                _healthSystem;
+        [SerializeField]private CharacterMovementController _movementController;
+        [SerializeField]private VisorController             _visorController;
+
+        private Entity _target;
 
         [ContextMenu("InitComponents")]
         public void InitComponents()
         {
-            _movementController.Init(_target?.transform, ((EnemyCtx)_ctx).Velocity, ((EnemyCtx)_ctx).AngularVelocity);
+            _visorController.Init(_target?.transform);
+            _meleeController.Init(((EnemyCtx)_ctx).CurrentReloadTime);
+            _visorController.TargetChanged += () => 
+            {
+                _target = _visorController.CurrentTarget.GetComponent<Entity>();
+                _movementController.SetTarget(_target.transform);
+            };
+            _movementController.SetTarget(_target?.transform);
+            _healthSystem.Died += () => {
+                Died?.Invoke();
+                Destroy(this.gameObject);
+            };
+        }
+        
+        protected override void NoHasKeyOnLoad()
+        {
+            base.NoHasKeyOnLoad();
+            ((EnemyCtx)_ctx).CurrentHealth = _healthSystem.CurrentHealth;
+            ((EnemyCtx)_ctx).CurrentReloadTime = _meleeController.CurrentReloadTime;
         }
 
         protected override void SaveAdditionalParams()
         {
-            ((EnemyCtx)_ctx).TargetKey = _target?.Key;
-            ((EnemyCtx)_ctx).Velocity = _movementController.Rigidbody.velocity;
-            ((EnemyCtx)_ctx).AngularVelocity = _movementController.Rigidbody.angularVelocity;
+            ((EnemyCtx)_ctx).TargetKey = _target?.Key; 
+            ((EnemyCtx)_ctx).CurrentHealth = _healthSystem.CurrentHealth;
+            ((EnemyCtx)_ctx).CurrentReloadTime = _meleeController.CurrentReloadTime;
+        }
+        
+        protected override void SetAdditionalParams()
+        {
+            base.SetAdditionalParams();
+            _healthSystem.SetHealth(((EnemyCtx)_ctx).CurrentHealth);
         }
 
         protected override void NewEntityCtx()

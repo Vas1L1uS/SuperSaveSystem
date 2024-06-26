@@ -37,5 +37,19 @@ namespace AAAProject.Scripts
                 _entityPaths.Add(path);
             }
         }
+
+        public Dictionary<string, Entity> GetEntityDictionary()
+        {
+            InitTypeNames();
+            
+            Dictionary<string, Entity> entityDictionary = new();
+
+            for (int i = 0; i < _entities.Count; i++)
+            {
+                entityDictionary.Add(_entityPaths[i], _entities[i]);
+            }
+
+            return entityDictionary;
+        }
     }
 }

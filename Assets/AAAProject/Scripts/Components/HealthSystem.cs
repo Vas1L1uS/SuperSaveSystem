@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace AAAProject.Scripts.Components
 {
-    //[Skip]
     public class HealthSystem : MBehaviour
     {
         public event Action<float> HealthChanged
