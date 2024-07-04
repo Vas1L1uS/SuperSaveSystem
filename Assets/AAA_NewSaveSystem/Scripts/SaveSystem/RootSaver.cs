@@ -3,63 +3,70 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace AAA_NewSaveSystem.Scripts.SaveSystem
 {
     public class RootSaver : MonoBehaviour
     {
-        public static Action Inited;
-
-        [SerializeField] private Text _loadProgress;
-
-        [SerializeField] private AssetCollection _meshCollections;
+        public static Action ObjectsReady;
+        public static Action LoadCompleted;
+        
         [SerializeField] private int _count;
-        private static AssetCollection _sMeshCollections;
+
+        private static Dictionary<int, Object> _objects = new();
 
         private int _totalObjects;
         private int _currentIndex;
         private int _componentIndex;
 
-        private void LoadStarted()
+        public static int GetCurrentObjectIDByPreviousID(int id)
+        {
+            try
+            {
+                var result = _objects[id];
+                return result.GetInstanceID();
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        public static void AddObject(Object obj, int id)
+        {
+            _objects.Add(id, obj);
+        }
+
+        private void StartLoad()
         {
             _count++;
         }
         
-        private void LoadCompleted()
+        private void LoadComplete()
         {
             _count--;
-            _loadProgress.text =((float)((float)_currentIndex/(float)_totalObjects)).ToString();
 
             if (_count == 0)
             {
-                Debug.Log($"Loaded {_currentIndex} GameObjects, {_componentIndex} Components");
+                StartCoroutine(FinishedRoutine());
             }
         }
 
-        public AssetCollection GetAssetCollectionByType(AssetCollectionType assetType)
+        private IEnumerator FinishedRoutine()
         {
-            switch (assetType)
-            {
-                case AssetCollectionType.Mesh:
-                    return _sMeshCollections;
-            }
-
-            return null;
+            yield return null;
+            ObjectsReady?.Invoke();
+            yield return null;
+            LoadCompleted?.Invoke();
         }
 
         private void Awake()
         {
-            _sMeshCollections = _meshCollections;
-            Inited += () =>
+            LoadCompleted += () =>
             {
-                Debug.Log($"Loaded {_currentIndex} GameObjects, {_componentIndex} Components");
+                Debug.Log($"LoadCompleted {_currentIndex} GameObjects, {_componentIndex} Components");
             };
-        }
-
-        public enum AssetCollectionType
-        {
-            Mesh
         }
 
         [ContextMenu("Save")]
@@ -109,6 +116,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
         public void Load()
         {
             StopAllCoroutines();
+            _objects = new();
             _count = 0;
             string savePath = Path.Combine(Application.persistentDataPath, "sceneData.json");
 
@@ -134,7 +142,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
 
         private IEnumerator LoadRoutine(GameObjectData rootData)
         {
-            LoadStarted();
+            StartLoad();
             
             foreach (GameObjectData child in rootData.children)
             {
@@ -143,14 +151,15 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             }
             
             yield return null;
-            LoadCompleted();
+            LoadComplete();
         }
 
         private IEnumerator LoadObject(GameObjectData gameObjectData, Transform parent)
         {
-            LoadStarted();
+            StartLoad();
             _currentIndex++;
             GameObject newObject = new GameObject();
+            AddObject(newObject, gameObjectData.instanceId);
             newObject.name = gameObjectData.name;
             newObject.transform.SetParent(parent);
 
@@ -167,32 +176,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             }
             
             yield return null;
-            LoadCompleted();
-        }
-
-        private IEnumerator InitRoutine()
-        {
-            yield return null;
-            yield return null;
-
-            // var actions = Inited.GetInvocationList();
-            //
-            // int delay = 10;
-            // int current = 0;
-            //
-            // for (int i = 0; i < actions.Length; i++)
-            // {
-            //     actions[i].DynamicInvoke();
-            //     current++;
-            //
-            //     if (current > delay)
-            //     {
-            //         yield return null;
-            //         current = 0;
-            //     }
-            // }
-            //
-            // yield return null;
+            LoadComplete();
         }
     }
 }

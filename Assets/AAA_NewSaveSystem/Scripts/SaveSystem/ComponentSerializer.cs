@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AAA_NewSaveSystem.Scripts.UnityComponentsData;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace AAA_NewSaveSystem.Scripts.SaveSystem
 {
@@ -13,7 +13,8 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
         {
             ComponentData data = new ComponentData
             {
-                typeName = component.GetType().AssemblyQualifiedName
+                typeName = component.GetType().AssemblyQualifiedName,
+                instanceId = component.GetInstanceID(),
             };
 
             switch (component)
@@ -133,16 +134,16 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             {
                 TransformData transformData = new TransformData();
                 transformData = (TransformData)JsonUtility.FromJson(data.jsonData, transformData.GetType());
-                
-                    go.transform.localPosition = transformData.LocalPosition;
-                    go.transform.localRotation = transformData.LocalRotation;
-                    go.transform.localScale = transformData.LocalScale;
-                
+                go.transform.localPosition = transformData.LocalPosition;
+                go.transform.localRotation = transformData.LocalRotation;
+                go.transform.localScale = transformData.LocalScale;
+                RootSaver.AddObject(go.transform, data.instanceId);
 
                 return;
             }
 
             Component component = go.AddComponent(type);
+            RootSaver.AddObject(component, data.instanceId);
 
             switch (component)
             {
@@ -220,8 +221,44 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
                     
                     break;
                 default:
-                    JsonUtility.FromJsonOverwrite(data.jsonData, component);
+                    //JsonUtility.FromJsonOverwrite(data.ToString(), component);
+                    RootSaver.ObjectsReady += () =>
+                    {
+                        JObject jsonObject = JObject.Parse(data.jsonData);
+                        ReplaceInstanceIDWithZero(jsonObject);
+                        JsonUtility.FromJsonOverwrite(jsonObject.ToString(), component);
+                    };
                     break;
+            }
+        }
+        
+        static void ReplaceInstanceIDWithZero(JToken token)
+        {
+            if (token is JProperty jProperty && jProperty.Name == "instanceID")
+            {
+                jProperty.Value = RootSaver.GetCurrentObjectIDByPreviousID(Convert.ToInt32(jProperty.Value.ToString()));
+            }
+
+            if (token is JProperty property)
+            {
+                foreach (var child in token.Children())
+                {
+                    ReplaceInstanceIDWithZero(child);
+                }
+            }
+            else if (token is JObject)
+            {
+                foreach (var child in token.Children<JProperty>())
+                {
+                    ReplaceInstanceIDWithZero(child);
+                }
+            }
+            else if (token is JArray)
+            {
+                foreach (var child in token.Children())
+                {
+                    ReplaceInstanceIDWithZero(child);
+                }
             }
         }
     }
