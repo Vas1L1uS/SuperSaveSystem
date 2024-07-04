@@ -5,9 +5,14 @@ using UnityEngine;
 namespace AAA_NewSaveSystem.Scripts
 {
     [Serializable]
-    public class Follow : MonoBehaviour
+    public class CubeController : MonoBehaviour
     {
         [SerializeField] private GameObject _prefab;
+
+        public void Init(GameObject prefab)
+        {
+            _prefab = prefab;
+        }
 
         private void Awake()
         {
@@ -17,9 +22,9 @@ namespace AAA_NewSaveSystem.Scripts
         private void InitDefault()
         {
             var meshFilter = GetComponent<MeshFilter>();
-            meshFilter.mesh = _prefab.GetComponent<MeshFilter>().mesh;
+            meshFilter.mesh = _prefab.GetComponent<MeshFilter>().sharedMesh;
             var meshRenderer = GetComponent<MeshRenderer>();
-            meshRenderer.material = _prefab.GetComponent<MeshRenderer>().material;
+            meshRenderer.material = _prefab.GetComponent<MeshRenderer>().sharedMaterial;
         }
     }
 }
