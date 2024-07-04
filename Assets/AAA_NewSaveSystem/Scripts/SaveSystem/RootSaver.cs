@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace AAA_NewSaveSystem.Scripts.SaveSystem
 {
@@ -10,11 +11,31 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
     {
         public static Action Inited;
 
+        [SerializeField] private Text _loadProgress;
+
         [SerializeField] private AssetCollection _meshCollections;
+        [SerializeField] private int _count;
         private static AssetCollection _sMeshCollections;
 
+        private int _totalObjects;
         private int _currentIndex;
         private int _componentIndex;
+
+        private void LoadStarted()
+        {
+            _count++;
+        }
+        
+        private void LoadCompleted()
+        {
+            _count--;
+            _loadProgress.text =((float)((float)_currentIndex/(float)_totalObjects)).ToString();
+
+            if (_count == 0)
+            {
+                Debug.Log($"Loaded {_currentIndex} GameObjects, {_componentIndex} Components");
+            }
+        }
 
         public AssetCollection GetAssetCollectionByType(AssetCollectionType assetType)
         {
@@ -30,6 +51,10 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
         private void Awake()
         {
             _sMeshCollections = _meshCollections;
+            Inited += () =>
+            {
+                Debug.Log($"Loaded {_currentIndex} GameObjects, {_componentIndex} Components");
+            };
         }
 
         public enum AssetCollectionType
@@ -75,12 +100,16 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
                 children.Add(SaveObject(child.gameObject));
             }
 
+            gameObjectData.count = _currentIndex;
+
             return gameObjectData;
         }
 
         [ContextMenu("Load")]
         public void Load()
         {
+            StopAllCoroutines();
+            _count = 0;
             string savePath = Path.Combine(Application.persistentDataPath, "sceneData.json");
 
             if (!File.Exists(savePath)) return;
@@ -93,26 +122,33 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
 
             _currentIndex = 0;
             _componentIndex = 0;
-
-            // Clear current scene (optional)
-            foreach (GameObject go in FindObjectsOfType<GameObject>())
+            _totalObjects = rootData.count - 1;
+            
+            for (int i = transform.childCount - 1; i > 0; i--)
             {
-                if (go != gameObject) // Only destroy objects that are part of the scene
-                {
-                    Destroy(go);
-                }
+                Destroy(transform.GetChild(i));
             }
-
-            foreach (GameObjectData child in rootData.children)
-            {
-                LoadObject(child, transform);
-            }
-
-            Debug.Log($"Loaded {_currentIndex} GameObjects, {_componentIndex} Components");
+            
+            StartCoroutine(LoadRoutine(rootData));
         }
 
-        private void LoadObject(GameObjectData gameObjectData, Transform parent)
+        private IEnumerator LoadRoutine(GameObjectData rootData)
         {
+            LoadStarted();
+            
+            foreach (GameObjectData child in rootData.children)
+            {
+                StartCoroutine(LoadObject(child, transform));
+                yield return null;
+            }
+            
+            yield return null;
+            LoadCompleted();
+        }
+
+        private IEnumerator LoadObject(GameObjectData gameObjectData, Transform parent)
+        {
+            LoadStarted();
             _currentIndex++;
             GameObject newObject = new GameObject();
             newObject.name = gameObjectData.name;
@@ -120,7 +156,8 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
 
             foreach (GameObjectData child in gameObjectData.children)
             {
-                LoadObject(child, newObject.transform);
+                StartCoroutine(LoadObject(child, newObject.transform));
+                yield return null;
             }
 
             foreach (ComponentData compData in gameObjectData.components)
@@ -128,8 +165,9 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
                 ComponentSerializer.DeserializeComponent(newObject, compData);
                 _componentIndex++;
             }
-
-            StartCoroutine(InitRoutine());
+            
+            yield return null;
+            LoadCompleted();
         }
 
         private IEnumerator InitRoutine()
@@ -137,24 +175,24 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             yield return null;
             yield return null;
 
-            var actions = Inited.GetInvocationList();
-
-            int delay = 10;
-            int current = 0;
-
-            for (int i = 0; i < actions.Length; i++)
-            {
-                actions[i].DynamicInvoke();
-                current++;
-
-                if (current > delay)
-                {
-                    yield return null;
-                    current = 0;
-                }
-            }
-            
-            yield return null;
+            // var actions = Inited.GetInvocationList();
+            //
+            // int delay = 10;
+            // int current = 0;
+            //
+            // for (int i = 0; i < actions.Length; i++)
+            // {
+            //     actions[i].DynamicInvoke();
+            //     current++;
+            //
+            //     if (current > delay)
+            //     {
+            //         yield return null;
+            //         current = 0;
+            //     }
+            // }
+            //
+            // yield return null;
         }
     }
 }

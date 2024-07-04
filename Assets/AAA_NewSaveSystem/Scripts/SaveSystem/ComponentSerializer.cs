@@ -133,12 +133,11 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             {
                 TransformData transformData = new TransformData();
                 transformData = (TransformData)JsonUtility.FromJson(data.jsonData, transformData.GetType());
-                RootSaver.Inited += () =>
-                {
+                
                     go.transform.localPosition = transformData.LocalPosition;
                     go.transform.localRotation = transformData.LocalRotation;
                     go.transform.localScale = transformData.LocalScale;
-                };
+                
 
                 return;
             }
@@ -150,20 +149,18 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
                 case Collider collider:
                     ColliderData colliderData = new ColliderData();
                     colliderData = (ColliderData)JsonUtility.FromJson(data.jsonData, colliderData.GetType());
-                    RootSaver.Inited += () =>
-                    {
+                    
                         collider.enabled = colliderData.Enabled;
                         collider.isTrigger = colliderData.IsTrigger;
-                    };
+                    
                     break;
                 case Rigidbody rigidbody:
                     RigidbodyData rigidbodyData = new RigidbodyData();
                     rigidbodyData = (RigidbodyData)JsonUtility.FromJson(data.jsonData, rigidbodyData.GetType());
-                    RootSaver.Inited += () =>
-                    {
+                    
                         rigidbody.velocity = rigidbodyData.Velocity;
                         rigidbody.angularVelocity = rigidbodyData.AngularVelocity;
-                    };
+                    
                     break;
                 case MeshRenderer meshRenderer:
                     MeshRendererData meshRendererData = new MeshRendererData()
@@ -171,8 +168,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
                         materialDataArray = new(),
                     };
                     meshRendererData = (MeshRendererData)JsonUtility.FromJson(data.jsonData, meshRendererData.GetType());
-                    RootSaver.Inited += () =>
-                    {
+                    
                         meshRenderer.materials = new Material[meshRendererData.materialDataArray.Count];
 
                         for (int i = 0; i < meshRendererData.materialDataArray.Count; i++)
@@ -182,13 +178,12 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
                                 color = meshRendererData.materialDataArray[i].color
                             };
                         }
-                    };
+                    
                     break;
                 case MeshFilter meshFilter:
                     MeshFilterData meshFilterData = new MeshFilterData();
                     meshFilterData = (MeshFilterData)JsonUtility.FromJson(data.jsonData, meshFilterData.GetType());
-                    RootSaver.Inited += () =>
-                    {
+                    
                         meshFilter.mesh = GetMeshByMeshData(meshFilterData.mesh);
                         meshFilter.sharedMesh = GetMeshByMeshData(meshFilterData.sharedMesh);
 
@@ -222,7 +217,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
 
                             return result;
                         }
-                    };
+                    
                     break;
                 default:
                     JsonUtility.FromJsonOverwrite(data.jsonData, component);

@@ -7,6 +7,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
     public class GameObjectData
     {
         public string name;
+        public int count;
         public int id;
         public int instanceId;
         public List<GameObjectData> children = new();
