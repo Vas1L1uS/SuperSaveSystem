@@ -13,6 +13,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
         public static Action LoadCompleted;
         
         [SerializeField] private int _count;
+        [SerializeField] private Object[] _assets;
 
         private static Dictionary<int, Object> _objects = new();
 
@@ -75,13 +76,37 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             _currentIndex = 0;
             _componentIndex = 0;
             string savePath = Path.Combine(Application.persistentDataPath, "sceneData.json");
-            string json = JsonUtility.ToJson(SaveObject(gameObject));
+            List<GameObjectData> children = new();
+
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                children.Add(SaveObject(transform.GetChild(i).gameObject));
+            }
+
+            List<int> assets = new(); 
+            
+            for (int i = 0; i < _assets.Length; i++)
+            {
+                assets.Add(_assets[i].GetInstanceID());
+            }
+
+            RootSaverData rootSaverData = new RootSaverData()
+            {
+                name = gameObject.name,
+                id = _currentIndex,
+                instanceId = gameObject.GetInstanceID(),
+                children = children,
+                assets = assets,
+            };
+
+            string json = JsonUtility.ToJson(rootSaverData);
             File.WriteAllText(savePath, json);
             Debug.Log($"Saved {_currentIndex} GameObjects, {_componentIndex} Components");
         }
 
         private GameObjectData SaveObject(GameObject go)
         {
+            _currentIndex++;
             List<GameObjectData> children = new();
 
             GameObjectData gameObjectData = new GameObjectData
@@ -99,15 +124,11 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
                 _componentIndex++;
             }
 
-            _currentIndex++;
-
             for (var i = 0; i < go.transform.childCount; i++)
             {
                 Transform child = go.transform.GetChild(i);
                 children.Add(SaveObject(child.gameObject));
             }
-
-            gameObjectData.count = _currentIndex;
 
             return gameObjectData;
         }
@@ -123,15 +144,14 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             if (!File.Exists(savePath)) return;
 
             string json = File.ReadAllText(savePath);
-            GameObjectData rootData = JsonUtility.FromJson<GameObjectData>(json);
+            RootSaverData rootData = JsonUtility.FromJson<RootSaverData>(json);
 
             string savePathLoad = Path.Combine(Application.persistentDataPath, "sceneDataLoad.json");
             File.WriteAllText(savePathLoad, json);
 
             _currentIndex = 0;
             _componentIndex = 0;
-            _totalObjects = rootData.count - 1;
-            
+
             for (int i = transform.childCount - 1; i > 0; i--)
             {
                 Destroy(transform.GetChild(i));
@@ -140,9 +160,14 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             StartCoroutine(LoadRoutine(rootData));
         }
 
-        private IEnumerator LoadRoutine(GameObjectData rootData)
+        private IEnumerator LoadRoutine(RootSaverData rootData)
         {
             StartLoad();
+
+            for (int i = 0; i < rootData.assets.Count; i++)
+            {
+                _objects.Add(rootData.assets[i], _assets[i]);
+            }
             
             foreach (GameObjectData child in rootData.children)
             {
