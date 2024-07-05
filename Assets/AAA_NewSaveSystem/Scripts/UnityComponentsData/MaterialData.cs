@@ -9,7 +9,8 @@ namespace AAA_NewSaveSystem.Scripts.UnityComponentsData
     {
         public string shaderName;
         public Color color;
-        public Color[][] colorsArray;
+        public Color[] colors;
+        public string[] colorsNames;
         public LocalKeyword[] enabledKeywords;
         public bool enableInstancing;
         public Texture mainTexture;

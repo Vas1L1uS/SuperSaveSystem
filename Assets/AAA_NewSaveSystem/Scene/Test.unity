@@ -152,10 +152,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _count: 0
-  _assets:
-  - {fileID: 6129084183766771495, guid: 08834bf084bdba9498828e07eb725ee3, type: 3}
-  - {fileID: 64672786445005894, guid: 70730c17e17e0bf44ae8a5e84d7c0885, type: 3}
-  - {fileID: 2100000, guid: cde91b760bf87174ca82ea9ea4e41e22, type: 2}
+  _assets: []
 --- !u!4 &379244521
 Transform:
   m_ObjectHideFlags: 0

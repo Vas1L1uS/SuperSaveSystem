@@ -4,6 +4,7 @@ using System.Linq;
 using AAA_NewSaveSystem.Scripts.UnityComponentsData;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace AAA_NewSaveSystem.Scripts.SaveSystem
 {
@@ -61,15 +62,23 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
 
                         for (int i = 0; i < mr.materials.Length; i++)
                         {
-                            List<Color[]> colorsList = new();
+                            List<Color> colors = new();
                             var currentMat  = mr.materials[i];
                             materialDataArray[i].color = currentMat.color;
+                            List<string> colorsNames = new();
                             
                             try
                             {
-                                for (int x = 0; x < 100; x++)
+                                for (int x = 0; x < currentMat.enabledKeywords.Length; x++)
                                 {
-                                    colorsList.Add(currentMat.GetColorArray(x));
+                                    var currentKeywordName = currentMat.enabledKeywords[i].name;
+                                    string colorName = GetColorNameByKeyWordName(currentKeywordName);
+
+                                    if (String.IsNullOrEmpty(colorName) == false)
+                                    {
+                                        colors.Add(currentMat.GetColor(colorName));
+                                        colorsNames.Add(colorName);
+                                    }
                                 }
                             }
                             catch
@@ -77,8 +86,9 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
                                 // ignored
                             }
 
-                            materialDataArray[i].colorsArray = colorsList.ToArray();
+                            materialDataArray[i].colors = colors.ToArray();
                             materialDataArray[i].shaderName  = currentMat.shader.name;
+                            materialDataArray[i].colorsNames = colorsNames.ToArray();
                             materialDataArray[i].enabledKeywords = currentMat.enabledKeywords;
                             materialDataArray[i].enableInstancing = currentMat.enableInstancing;
                             materialDataArray[i].mainTexture = currentMat.mainTexture;
@@ -206,7 +216,6 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
                             {
                                 name = "AAA",
                                 color = currentMat.color,
-                                enabledKeywords = currentMat.enabledKeywords,
                                 enableInstancing = currentMat.enableInstancing,
                                 mainTexture = currentMat.mainTexture,
                                 renderQueue = currentMat.renderQueue,
@@ -217,9 +226,18 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
                                 doubleSidedGI = currentMat.doubleSidedGI,
                             };
 
-                            for (int j = 0; j < currentMat.colorsArray.Length; j++)
+                            for (int j = 0; j < currentMat.colorsNames.Length; j++)
                             {
-                                newMat.SetColorArray(j, currentMat.colorsArray[j]);
+                                string name = currentMat.colorsNames[i];
+                                
+                                try
+                                {
+                                    newMat.SetColor(GetColorNameByKeyWordName(name), currentMat.colors[j]);
+                                }
+                                catch
+                                {
+                                    // ignored
+                                }
                             }
                             
                             materials[i] = newMat;
@@ -313,6 +331,24 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
                     ReplaceInstanceIDWithZero(child);
                 }
             }
+        }
+        
+        private static string GetColorNameByKeyWordName(string name)
+        {
+            return @name switch
+            {
+                "_EMISSION" => "_EmissionColor",
+                _ => null
+            };
+        }
+        
+        private static string GetKeyWordNameByColorName(string name)
+        {
+            return @name switch
+            {
+                "_EmissionColor" => "_EMISSION",
+                _ => null
+            };
         }
     }
 }
