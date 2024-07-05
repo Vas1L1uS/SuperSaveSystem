@@ -7,24 +7,14 @@ namespace AAA_NewSaveSystem.Scripts
     [Serializable]
     public class CubeController : MonoBehaviour
     {
-        [SerializeField] private GameObject _prefab;
-
-        public void Init(GameObject prefab)
-        {
-            _prefab = prefab;
-        }
-
         private void Awake()
         {
-            RootSaver.LoadCompleted += InitDefault;
+            RootSaver.LoadCompleted += Init;
         }
 
-        private void InitDefault()
+        private void Init()
         {
-            var meshFilter = GetComponent<MeshFilter>();
-            meshFilter.mesh = _prefab.GetComponent<MeshFilter>().sharedMesh;
-            var meshRenderer = GetComponent<MeshRenderer>();
-            meshRenderer.material = _prefab.GetComponent<MeshRenderer>().sharedMaterial;
+            Debug.Log(GetComponent<MeshRenderer>().material.color);
         }
     }
 }

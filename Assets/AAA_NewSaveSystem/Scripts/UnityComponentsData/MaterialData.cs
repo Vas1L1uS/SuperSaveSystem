@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace AAA_NewSaveSystem.Scripts.UnityComponentsData
 {
@@ -8,5 +9,15 @@ namespace AAA_NewSaveSystem.Scripts.UnityComponentsData
     {
         public string shaderName;
         public Color color;
+        public Color[][] colorsArray;
+        public LocalKeyword[] enabledKeywords;
+        public bool enableInstancing;
+        public Texture mainTexture;
+        public int renderQueue;
+        public string[] shaderKeywords;
+        public MaterialGlobalIlluminationFlags globalIlluminationFlags;
+        public Vector2 mainTextureOffset;
+        public Vector2 mainTextureScale;
+        public bool doubleSidedGI;
     }
 }

@@ -93,7 +93,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             RootSaverData rootSaverData = new RootSaverData()
             {
                 name = gameObject.name,
-                id = _currentIndex,
+                id = 0,
                 instanceId = gameObject.GetInstanceID(),
                 children = children,
                 assets = assets,

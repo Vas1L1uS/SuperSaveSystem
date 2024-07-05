@@ -11,7 +11,7 @@ namespace AAA_NewSaveSystem.Scripts
         {
             for (int i = 0; i < 100; i++)
             {
-                Instantiate(_cubePrefab, new Vector3(Random.Range(-100, 100), Random.Range(-100, 100), Random.Range(-100, 100)), Quaternion.identity, transform).GetComponent<CubeController>().Init(_cubePrefab);
+                //Instantiate(_cubePrefab, new Vector3(Random.Range(-100, 100), Random.Range(-100, 100), Random.Range(-100, 100)), Quaternion.identity, transform).GetComponent<CubeController>().Init(_cubePrefab);
             }
         }
     }
