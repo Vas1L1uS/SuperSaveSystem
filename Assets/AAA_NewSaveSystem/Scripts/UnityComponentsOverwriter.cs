@@ -9,9 +9,9 @@ namespace AAA_NewSaveSystem.Scripts
             a.materials = b.sharedMaterials;
             a.additionalVertexStreams = b.additionalVertexStreams;
             a.enlightenVertexStream = b.enlightenVertexStream;
-            a.receiveGI = b.receiveGI;
-            a.scaleInLightmap = b.scaleInLightmap;
-            a.stitchLightmapSeams = b.stitchLightmapSeams;
+            //a.receiveGI = b.receiveGI;
+            //a.scaleInLightmap = b.scaleInLightmap;
+            //a.stitchLightmapSeams = b.stitchLightmapSeams;
             a.bounds = b.bounds;
             a.lightmapIndex = b.lightmapIndex;
             a.localBounds = b.localBounds;
