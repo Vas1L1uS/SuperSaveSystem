@@ -9,6 +9,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
 {
     public class RootSaver : MonoBehaviour
     {
+        public static Action ObjectsCreated;
         public static Action ObjectsReady;
         public static Action LoadCompleted;
         
@@ -38,38 +39,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
         {
             _objects.Add(id, obj);
         }
-
-        private void StartLoad()
-        {
-            _count++;
-        }
         
-        private void LoadComplete()
-        {
-            _count--;
-
-            if (_count == 0)
-            {
-                StartCoroutine(FinishedRoutine());
-            }
-        }
-
-        private IEnumerator FinishedRoutine()
-        {
-            yield return null;
-            ObjectsReady?.Invoke();
-            yield return null;
-            LoadCompleted?.Invoke();
-        }
-
-        private void Awake()
-        {
-            LoadCompleted += () =>
-            {
-                Debug.Log($"LoadCompleted {_currentIndex} GameObjects, {_componentIndex} Components");
-            };
-        }
-
         [ContextMenu("Save")]
         public void Save()
         {
@@ -102,6 +72,44 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             string json = JsonUtility.ToJson(rootSaverData);
             File.WriteAllText(savePath, json);
             Debug.Log($"Saved {_currentIndex} GameObjects, {_componentIndex} Components");
+        }
+
+        private void StartLoad()
+        {
+            _count++;
+        }
+        
+        private void LoadComplete()
+        {
+            _count--;
+
+            if (_count == 0)
+            {
+                StartCoroutine(FinishedRoutine());
+            }
+        }
+
+        private IEnumerator FinishedRoutine()
+        {
+            yield return null;
+            ObjectsCreated?.Invoke();
+            yield return null;
+            ObjectsReady?.Invoke();
+            yield return null;
+            LoadCompleted?.Invoke();
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+            _objects = new();
+        }
+
+        private void Awake()
+        {
+            ObjectsReady += () =>
+            {
+                Debug.Log($"Loaded {_currentIndex} GameObjects, {_componentIndex} Components");
+            };
         }
 
         private GameObjectData SaveObject(GameObject go)
@@ -146,8 +154,8 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             string json = File.ReadAllText(savePath);
             RootSaverData rootData = JsonUtility.FromJson<RootSaverData>(json);
 
-            string savePathLoad = Path.Combine(Application.persistentDataPath, "sceneDataLoad.json");
-            File.WriteAllText(savePathLoad, json);
+            // string savePathLoad = Path.Combine(Application.persistentDataPath, "sceneDataLoad.json");
+            // File.WriteAllText(savePathLoad, json);
 
             _currentIndex = 0;
             _componentIndex = 0;

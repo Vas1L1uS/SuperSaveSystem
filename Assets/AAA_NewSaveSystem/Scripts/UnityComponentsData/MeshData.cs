@@ -1,17 +1,9 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace AAA_NewSaveSystem.Scripts.UnityComponentsData
 {
-    [Serializable]
-    public struct MeshFilterData
-    {
-        [SerializeField] public MeshData mesh;
-        [SerializeField] public MeshData sharedMesh;
-    }
-
     [Serializable]
     public struct MeshData
     {
