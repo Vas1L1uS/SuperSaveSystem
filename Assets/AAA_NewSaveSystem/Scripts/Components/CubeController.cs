@@ -12,7 +12,7 @@ namespace AAA_NewSaveSystem.Scripts.Components
         [SerializeField] private GameObject _target;
         [SerializeField] private float _speed;
         
-        private void Start()
+        private void Awake()
         {
             RootSaver.ObjectsReady += Init;
         }
