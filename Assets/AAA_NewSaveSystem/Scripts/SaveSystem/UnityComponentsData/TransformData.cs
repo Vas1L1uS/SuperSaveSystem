@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace AAA_NewSaveSystem.Scripts.UnityComponentsData
+namespace AAA_NewSaveSystem.Scripts.SaveSystem.UnityComponentsData
 {
     [Serializable]
     public struct TransformData

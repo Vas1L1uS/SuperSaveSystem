@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace AAA_NewSaveSystem.Scripts.UnityComponentsData
+namespace AAA_NewSaveSystem.Scripts.SaveSystem.UnityComponentsData
 {
     [Serializable]
     public struct MaterialData

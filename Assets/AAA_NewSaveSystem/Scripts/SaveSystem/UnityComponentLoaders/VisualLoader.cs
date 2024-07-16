@@ -1,24 +1,21 @@
-using System;
-using AAA_NewSaveSystem.Scripts.SaveSystem;
+using AAA_NewSaveSystem.Scripts.SaveSystem.Core;
 using UnityEngine;
 
-namespace AAA_NewSaveSystem.Scripts.Components
+namespace AAA_NewSaveSystem.Scripts.SaveSystem.UnityComponentLoaders
 {
-    [Serializable]
-    public class CubeController : MonoBehaviour
+    public class VisualLoader : MonoBehaviour
     {
         [SerializeField] private GameObject _myPrefab;
-        
-        [SerializeField] private GameObject _target;
-        [SerializeField] private float _speed;
-        
+
         private void Awake()
         {
-            RootSaver.ObjectsReady += Init;
+            RootSaver.Loaded += Init;
         }
 
-        private void Init()
+        private void Init(bool loaded)
         {
+            if (loaded == false) return;
+            
             var myPrefabMeshFilter = _myPrefab.GetComponent<MeshFilter>();
             var myPrefabMeshRenderer = _myPrefab.GetComponent<MeshRenderer>();
             var meshF = GetComponent<MeshFilter>();
@@ -26,10 +23,10 @@ namespace AAA_NewSaveSystem.Scripts.Components
             meshF.CopyValues(myPrefabMeshFilter);
             meshR.CopyValues(myPrefabMeshRenderer);
         }
-
+        
         private void OnDestroy()
         {
-            RootSaver.ObjectsReady -= Init;
+            RootSaver.Loaded -= Init;
         }
     }
 }

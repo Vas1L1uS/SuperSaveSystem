@@ -2,17 +2,18 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using AAA_NewSaveSystem.Scripts.SaveSystem.Core;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace AAA_NewSaveSystem.Scripts.SaveSystem
+namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
 {
     public class RootSaver : MonoBehaviour
     {
         public static Action ObjectsCreated;
-        public static Action ObjectsReady;
-        public static Action LoadCompleted;
+        public static Action<bool> Loaded;
+        public static Action Test;
+
+        public string SaveName = "MySave";
         
         [SerializeField] private int _count;
         [SerializeField] private Object[] _assets;
@@ -27,7 +28,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
         {
             try
             {
-                var result = _objects[id];
+                Object result = _objects[id];
                 return result.GetInstanceID();
             }
             catch
@@ -46,7 +47,8 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
         {
             _currentIndex = 0;
             _componentIndex = 0;
-            string savePath = Path.Combine(Application.persistentDataPath, "sceneData.json");
+            
+            string savePath = Path.Combine(Application.persistentDataPath, $"{SaveName}.json");
             List<GameObjectData> children = new();
 
             for (int i = 0; i < transform.childCount; i++)
@@ -75,6 +77,13 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             Debug.Log($"Saved {_currentIndex} GameObjects, {_componentIndex} Components");
         }
 
+        [ContextMenu("ClearSave")]
+        public void ClearSave()
+        {
+            string savePath = Path.Combine(Application.persistentDataPath, $"{SaveName}.json");
+            File.Delete(savePath);
+        }
+
         private void StartLoad()
         {
             _count++;
@@ -86,19 +95,22 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
 
             if (_count == 0)
             {
-                StartCoroutine(FinishedRoutine());
+                StartCoroutine(StagesRoutine());
             }
         }
 
-        private IEnumerator FinishedRoutine()
+        private IEnumerator StagesRoutine()
         {
             yield return null;
             ObjectsCreated?.Invoke();
             yield return null;
-            ObjectsReady?.Invoke();
             yield return null;
-            LoadCompleted?.Invoke();
             yield return null;
+            Loaded?.Invoke(true);
+            yield return null;
+            yield return null;
+            yield return null;
+            Test?.Invoke();
             yield return null;
             yield return null;
             yield return null;
@@ -107,10 +119,14 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
 
         private void Awake()
         {
-            ObjectsReady += () =>
+            Loaded += result =>
             {
-                Debug.Log($"Loaded {_currentIndex} GameObjects, {_componentIndex} Components");
+                Debug.Log(result
+                    ? $"Loaded {_currentIndex} GameObjects, {_componentIndex} Components"
+                    : $"Save file not found");
             };
+            
+            Load();
         }
 
         private GameObjectData SaveObject(GameObject go)
@@ -125,6 +141,8 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
                 instanceId = go.GetInstanceID(),
                 activeSelf = go.activeSelf,
                 children = children,
+                layer = go.layer,
+                tag = go.tag,
             };
 
             foreach (Component component in go.GetComponents<Component>())
@@ -149,15 +167,17 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             StopAllCoroutines();
             _objects = new();
             _count = 0;
-            string savePath = Path.Combine(Application.persistentDataPath, "sceneData.json");
+            string savePath = Path.Combine(Application.persistentDataPath, $"{SaveName}.json");
 
-            if (!File.Exists(savePath)) return;
+            if (!File.Exists(savePath))
+            {
+                Loaded?.Invoke(false);
+                Test?.Invoke();
+                return;
+            }
 
             string json = File.ReadAllText(savePath);
             RootSaverData rootData = JsonUtility.FromJson<RootSaverData>(json);
-
-            // string savePathLoad = Path.Combine(Application.persistentDataPath, "sceneDataLoad.json");
-            // File.WriteAllText(savePathLoad, json);
 
             _currentIndex = 0;
             _componentIndex = 0;
@@ -196,6 +216,8 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             GameObject newObject = new();
             AddObject(newObject, gameObjectData.instanceId);
             newObject.name = gameObjectData.name;
+            newObject.layer = gameObjectData.layer;
+            newObject.tag = gameObjectData.tag;
             newObject.transform.SetParent(parent);
 
             foreach (GameObjectData child in gameObjectData.children)

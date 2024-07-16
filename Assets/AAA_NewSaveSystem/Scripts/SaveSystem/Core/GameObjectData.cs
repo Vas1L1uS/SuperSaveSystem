@@ -10,8 +10,10 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
         public int id;
         public int instanceId;
         public bool activeSelf;
+        public int layer;
+        public string tag;
+        public List<ComponentData> components = new();
         public List<GameObjectData> children = new();
-        public List<ComponentData> components = new List<ComponentData>();
     }
 
     [Serializable]
