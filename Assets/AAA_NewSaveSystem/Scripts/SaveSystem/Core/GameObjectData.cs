@@ -7,7 +7,6 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
     public class GameObjectData
     {
         public string name;
-        public int id;
         public int instanceId;
         public bool activeSelf;
         public int layer;
@@ -19,11 +18,9 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
     [Serializable]
     public class RootSaverData
     {
-        public string name;
-        public int id;
-        public int instanceId;
         public List<int> assets = new();
         public List<GameObjectData> children = new();
+        public List<GameObjectData> otherSavedGameObjects = new();
     }
     
     [Serializable]

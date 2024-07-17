@@ -11,7 +11,6 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
     {
         public static Action ObjectsCreated;
         public static Action<bool> Loaded;
-        public static Action Test;
 
         public string SaveName = "MySave";
         
@@ -19,12 +18,13 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
         [SerializeField] private Object[] _assets;
 
         private static Dictionary<int, Object> _objects = new();
+        private static readonly List<(GameObject gameObject, bool saveChildren)> _otherGameObjectsForSave = new();
 
         private int _totalObjects;
         private int _currentIndex;
         private int _componentIndex;
 
-        public static int GetCurrentObjectIDByPreviousID(int id)
+        public static int GetCurrentInstanceIDByPreviousInstanceID(int id)
         {
             try
             {
@@ -41,6 +41,18 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
         {
             _objects.Add(id, obj);
         }
+
+        public static void AddGameObjectForSave(GameObject go, bool saveChildren)
+        {
+            for (int i = 0; i < _otherGameObjectsForSave.Count; i++)
+            {
+                if (_otherGameObjectsForSave[i].gameObject != go) continue;
+
+                throw new Exception("This object is already in the list to save");
+            }
+            
+            _otherGameObjectsForSave.Add((go, saveChildren));
+        }
         
         [ContextMenu("Save")]
         public void Save()
@@ -53,7 +65,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
 
             for (int i = 0; i < transform.childCount; i++)
             {
-                children.Add(SaveObject(transform.GetChild(i).gameObject));
+                children.Add(SaveObject(transform.GetChild(i).gameObject, true));
             }
 
             List<int> assets = new(); 
@@ -62,14 +74,19 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             {
                 assets.Add(_assets[i].GetInstanceID());
             }
-
-            RootSaverData rootSaverData = new RootSaverData()
+            
+            List<GameObjectData> otherGameObjectsForSave = new(); 
+            
+            for (int i = 0; i < _otherGameObjectsForSave.Count; i++)
             {
-                name = gameObject.name,
-                id = 0,
-                instanceId = gameObject.GetInstanceID(),
+                otherGameObjectsForSave.Add(SaveObject(_otherGameObjectsForSave[i].gameObject, _otherGameObjectsForSave[i].saveChildren));
+            }
+
+            RootSaverData rootSaverData = new()
+            {
                 children = children,
                 assets = assets,
+                otherSavedGameObjects = otherGameObjectsForSave
             };
 
             string json = JsonUtility.ToJson(rootSaverData);
@@ -110,14 +127,12 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             yield return null;
             yield return null;
             yield return null;
-            Test?.Invoke();
-            yield return null;
             yield return null;
             yield return null;
             _objects = new();
         }
 
-        private void Awake()
+        private void Start()
         {
             Loaded += result =>
             {
@@ -129,15 +144,14 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             Load();
         }
 
-        private GameObjectData SaveObject(GameObject go)
+        private GameObjectData SaveObject(GameObject go, bool saveChildren)
         {
             _currentIndex++;
             List<GameObjectData> children = new();
 
-            GameObjectData gameObjectData = new GameObjectData
+            GameObjectData gameObjectData = new()
             {
                 name = go.name,
-                id = _currentIndex,
                 instanceId = go.GetInstanceID(),
                 activeSelf = go.activeSelf,
                 children = children,
@@ -152,10 +166,13 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
                 _componentIndex++;
             }
 
-            for (var i = 0; i < go.transform.childCount; i++)
+            if (saveChildren)
             {
-                Transform child = go.transform.GetChild(i);
-                children.Add(SaveObject(child.gameObject));
+                for (var i = 0; i < go.transform.childCount; i++)
+                {
+                    Transform child = go.transform.GetChild(i);
+                    children.Add(SaveObject(child.gameObject, true));
+                }
             }
 
             return gameObjectData;
@@ -172,7 +189,6 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             if (!File.Exists(savePath))
             {
                 Loaded?.Invoke(false);
-                Test?.Invoke();
                 return;
             }
 
@@ -202,6 +218,12 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             foreach (GameObjectData child in rootData.children)
             {
                 StartCoroutine(LoadObject(child, transform));
+                yield return null;
+            }
+            
+            foreach (GameObjectData other in rootData.otherSavedGameObjects)
+            {
+                StartCoroutine(LoadObject(other, null));
                 yield return null;
             }
             

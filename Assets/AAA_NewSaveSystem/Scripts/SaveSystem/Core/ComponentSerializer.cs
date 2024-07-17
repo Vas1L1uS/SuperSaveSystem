@@ -87,7 +87,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
         {
             if (token is JProperty jProperty && jProperty.Name == "instanceID")
             {
-                jProperty.Value = RootSaver.GetCurrentObjectIDByPreviousID(Convert.ToInt32(jProperty.Value.ToString()));
+                jProperty.Value = RootSaver.GetCurrentInstanceIDByPreviousInstanceID(Convert.ToInt32(jProperty.Value.ToString()));
             }
 
             if (token is JProperty property)

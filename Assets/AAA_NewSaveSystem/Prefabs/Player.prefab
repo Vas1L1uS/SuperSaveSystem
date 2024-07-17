@@ -256,6 +256,7 @@ MonoBehaviour:
   _snakeMovement: {fileID: 608355272586855503}
   _playerInput: {fileID: 9136325477007504303}
   _picker: {fileID: 940066622026914891}
+  _crashTrigger: {fileID: 3698879501316957614}
   _currentScore: 0
 --- !u!114 &9136325477007504303
 MonoBehaviour:
@@ -284,12 +285,7 @@ MonoBehaviour:
   _bodyElementPrefab: {fileID: 6981000155586325595, guid: 3fdf146826f53784eb66b61f284d5c43, type: 3}
   _bodyElementsTransforms:
   - {fileID: 2353595643705337533}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  _speed: 3
+  _speed: 8
   _currentDirection: {x: 0, y: 0, z: 1}
   _bodyElementsParent: {fileID: 473945023425844387}
   _bodyElements: []

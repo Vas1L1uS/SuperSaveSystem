@@ -1,6 +1,5 @@
 using System;
 using AAA_NewSaveSystem.Scripts.Demo.Player;
-using AAA_NewSaveSystem.Scripts.SaveSystem;
 using AAA_NewSaveSystem.Scripts.SaveSystem.Core;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -17,10 +16,10 @@ namespace AAA_NewSaveSystem.Scripts.Demo
 
         private void Awake()
         {
-            RootSaver.Test += Init;
+            RootSaver.Loaded += Init;
         }
 
-        private void Init()
+        private void Init(bool loaded)
         {
             if (_currentFood == null)
             {
@@ -55,7 +54,7 @@ namespace AAA_NewSaveSystem.Scripts.Demo
 
         private void OnDestroy()
         {
-            RootSaver.Test -= Init;
+            RootSaver.Loaded -= Init;
             UnsubscribeFromComponents();
         }
 
