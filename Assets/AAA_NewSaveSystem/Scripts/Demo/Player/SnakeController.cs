@@ -8,7 +8,7 @@ namespace AAA_NewSaveSystem.Scripts.Demo.Player
     public class SnakeController : MonoBehaviour
     {
         public event Action<int> ScoreChanged;
-        public event Action Dead;
+        public event Action Died;
 
         public int CurrentScore => _currentScore;
         
@@ -71,6 +71,11 @@ namespace AAA_NewSaveSystem.Scripts.Demo.Player
             _playerInput.MovementPressed -= SetDirectionForSnakeMovement;
             _picker.Picked -= Pick;
             _crashTrigger.Crashed -= Dead;
+        }
+
+        private void Dead()
+        {
+            Died?.Invoke();
         }
 
         private void OnDestroy()

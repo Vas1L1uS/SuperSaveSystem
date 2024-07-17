@@ -1,6 +1,7 @@
 using AAA_NewSaveSystem.Scripts.Demo.Player;
 using AAA_NewSaveSystem.Scripts.SaveSystem.Core;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace AAA_NewSaveSystem.Scripts.Demo
 {
@@ -15,11 +16,19 @@ namespace AAA_NewSaveSystem.Scripts.Demo
 
         private void Init(bool loaded)
         {
-            if (loaded)
-            {
-                
-            }
-            
+            Debug.Log("Init");
+            _snakeController.Died += RestartGame;
+        }
+
+        private void RestartGame()
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
+        private void OnDestroy()
+        {
+            RootSaver.Loaded -= Init;
+            _snakeController.Died -= RestartGame;
         }
     }
 }

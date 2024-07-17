@@ -9,22 +9,24 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
 {
     public class RootSaver : MonoBehaviour
     {
+        public static Action<bool> LoadingStarted;
         public static Action ObjectsCreated;
         public static Action<bool> Loaded;
+        public static Action SavingStarted;
 
         public string SaveName = "MySave";
         
         [SerializeField] private int _count;
         [SerializeField] private Object[] _assets;
 
-        private static Dictionary<int, Object> _objects = new();
+        private static readonly Dictionary<int, Object> _objects = new();
         private static readonly List<(GameObject gameObject, bool saveChildren)> _otherGameObjectsForSave = new();
 
         private int _totalObjects;
         private int _currentIndex;
         private int _componentIndex;
 
-        public static int GetCurrentInstanceIDByPreviousInstanceID(int id)
+        public static int GetCurrentInstanceIDByPreviousInstanceId(int id)
         {
             try
             {
@@ -35,6 +37,18 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             {
                 return 0;
             }
+        }
+
+        public static GameObject GetGameObjectByPreviousId(int id)
+        {
+            if (_objects.ContainsKey(id) == false) return null;
+            
+            if (_objects[id] is GameObject go)
+            {
+                return go;
+            }
+
+            return null;
         }
 
         public static void AddObject(Object obj, int id)
@@ -57,6 +71,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
         [ContextMenu("Save")]
         public void Save()
         {
+            SavingStarted?.Invoke();
             _currentIndex = 0;
             _componentIndex = 0;
             
@@ -129,7 +144,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             yield return null;
             yield return null;
             yield return null;
-            _objects = new();
+            _objects.Clear();
         }
 
         private void Start()
@@ -182,15 +197,26 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
         public void Load()
         {
             StopAllCoroutines();
-            _objects = new();
+            _objects.Clear();
+            
             _count = 0;
             string savePath = Path.Combine(Application.persistentDataPath, $"{SaveName}.json");
 
             if (!File.Exists(savePath))
             {
+                LoadingStarted?.Invoke(false);
                 Loaded?.Invoke(false);
                 return;
             }
+            
+            LoadingStarted?.Invoke(true);
+            
+            for (int i = 0; i < _otherGameObjectsForSave.Count; i++)
+            {
+                Destroy(_otherGameObjectsForSave[i].gameObject);
+            }
+            
+            _otherGameObjectsForSave.Clear();
 
             string json = File.ReadAllText(savePath);
             RootSaverData rootData = JsonUtility.FromJson<RootSaverData>(json);
@@ -202,7 +228,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             {
                 Destroy(transform.GetChild(i).gameObject);
             }
-            
+
             StartCoroutine(LoadRoutine(rootData));
         }
 
@@ -257,6 +283,11 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             newObject.SetActive(gameObjectData.activeSelf);
             yield return null;
             LoadComplete();
+        }
+
+        private void OnDestroy()
+        {
+            Loaded = null;
         }
     }
 }

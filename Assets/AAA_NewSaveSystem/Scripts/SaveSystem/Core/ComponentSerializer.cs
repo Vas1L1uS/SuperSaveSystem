@@ -22,12 +22,18 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             switch (component)
             {
                 case Transform transform:
-                    TransformData transformData = new TransformData()
+                    int parentInstanceId = 0;
+
+                    if (transform.parent != null) parentInstanceId = transform.parent.gameObject.GetInstanceID();
+
+                    TransformData transformData = new()
                     {
                         LocalPosition = transform.localPosition,
                         LocalRotation = transform.localRotation,
                         LocalScale = transform.localScale,
+                        ParentInstanceId = parentInstanceId,
                     };
+                    
                     data.jsonData = JsonUtility.ToJson(transformData);
 
                     break;
@@ -55,8 +61,10 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
 
             if (type == typeof(Transform))
             {
-                TransformData transformData = new TransformData();
+                TransformData transformData = new();
                 transformData = (TransformData)JsonUtility.FromJson(data.jsonData, transformData.GetType());
+                GameObject parent = RootSaver.GetGameObjectByPreviousId(transformData.ParentInstanceId);
+                if (parent != null) go.transform.SetParent(parent.transform);
                 go.transform.localPosition = transformData.LocalPosition;
                 go.transform.localRotation = transformData.LocalRotation;
                 go.transform.localScale = transformData.LocalScale;
@@ -87,7 +95,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
         {
             if (token is JProperty jProperty && jProperty.Name == "instanceID")
             {
-                jProperty.Value = RootSaver.GetCurrentInstanceIDByPreviousInstanceID(Convert.ToInt32(jProperty.Value.ToString()));
+                jProperty.Value = RootSaver.GetCurrentInstanceIDByPreviousInstanceId(Convert.ToInt32(jProperty.Value.ToString()));
             }
 
             if (token is JProperty property)

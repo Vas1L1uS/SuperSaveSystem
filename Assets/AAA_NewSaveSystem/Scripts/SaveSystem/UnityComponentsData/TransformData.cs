@@ -9,5 +9,6 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.UnityComponentsData
         public Vector3 LocalPosition;
         public Quaternion LocalRotation;
         public Vector3 LocalScale;
+        public int ParentInstanceId;
     }
 }
