@@ -20,7 +20,7 @@ namespace AAA_NewSaveSystem.Scripts.Demo.Player
 
         private void Awake()
         {
-            RootSaver.Loaded += Init;
+            SaveManager.Loaded += Init;
         }
 
         private void Init(bool loaded)
@@ -79,7 +79,7 @@ namespace AAA_NewSaveSystem.Scripts.Demo.Player
 
         private void OnDestroy()
         {
-            RootSaver.Loaded -= Init;
+            SaveManager.Loaded -= Init;
             UnsubscribeOnComponents();
         }
     }

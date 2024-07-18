@@ -15,7 +15,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.UnityComponentLoaders
             _myRb = GetComponent<Rigidbody>();
             _isKinematic = _myRb.isKinematic;
             _myRb.isKinematic = true;
-            RootSaver.Loaded += Init;
+            SaveManager.Loaded += Init;
         }
 
         private void Init(bool loaded)
@@ -32,7 +32,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.UnityComponentLoaders
         
         private void OnDestroy()
         {
-            RootSaver.Loaded -= Init;
+            SaveManager.Loaded -= Init;
         }
     }
 }

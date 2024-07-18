@@ -3,21 +3,22 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using AAA_NewSaveSystem.Scripts.SaveSystem.UnityComponentsData;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
 {
-    public class RootSaver : MonoBehaviour
+    public class SaveManager : MonoBehaviour
     {
-        public static Action<bool> LoadingStarted;
-        public static Action<bool> Loaded;
-        public static Action SavingStarted;
-
+        public static event Action<bool> LoadingStarted;
+        public static event Action<bool> Loaded;
+        public static event Action SavingStarted;
+        
         public string SaveName = "MySave";
         
-        private static Action _objectsCreated;
-
+        private static event Action _objectsCreated;
+        
         [SerializeField] private float _progress;
         [SerializeField] private Object[] _assets;
 
@@ -25,27 +26,14 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
         private static readonly List<(GameObject gameObject, bool saveChildren)> _otherGameObjectsForSave = new();
         private static readonly List<(ComponentData, Component)> _componentsForDeserialization = new();
 
+        private static SaveManager _instance;
         private int _totalSavedObjects;
         private int _objectIndex;
         private int _componentIndex;
         private float _deltaTime;
         private int _count;
-
         private Coroutine _deserializeComponentsCoroutine;
-
-        public static int GetCurrentInstanceIDByPreviousInstanceId(int id)
-        {
-            try
-            {
-                Object result = _objects[id];
-                return result.GetInstanceID();
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
+        
         public static void AddGameObjectForSave(GameObject go, bool saveChildren)
         {
             for (int i = 0; i < _otherGameObjectsForSave.Count; i++)
@@ -133,7 +121,17 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             string savePath = Path.Combine(Application.persistentDataPath, $"{SaveName}.json");
             File.Delete(savePath);
         }
-        
+
+        private void OnValidate()
+        {
+            SetInstance();
+        }
+
+        private void Awake()
+        {
+            SetInstance();
+        }
+
         private void Start()
         {
             Loaded += result =>
@@ -147,6 +145,19 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             _objectsCreated += DeserializeComponents;
             
             Load();
+        }
+        
+        private void SetInstance()
+        {
+            if (_instance == null)
+            { 
+                _instance = this;
+            }
+            else if (_instance != this)
+            {
+                Debug.LogError("There can only be one SaveManger object in the scene!");
+                Destroy(gameObject);
+            }
         }
 
         private void StartLoad()
@@ -187,7 +198,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
 
             foreach (Component component in go.GetComponents<Component>())
             {
-                ComponentData compData = ComponentSerializer.SerializeComponent(component);
+                ComponentData compData = SerializeComponent(component);
                 gameObjectData.components.Add(compData);
                 _componentIndex++;
             }
@@ -215,6 +226,19 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
 
             return null;
         }
+        
+        private int GetCurrentInstanceIDByPreviousInstanceId(int id)
+        {
+            try
+            {
+                Object result = _objects[id];
+                return result.GetInstanceID();
+            }
+            catch
+            {
+                return 0;
+            }
+        }
 
         private void AddObject(Object obj, int id)
         {
@@ -225,13 +249,95 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
         {
             _componentsForDeserialization.Add((componentData, component));
         }
+        
+        private void DeserializeComponent(ComponentData data, Component component)
+        {
+            JObject jsonObject = JObject.Parse(data.jsonData);
+            ReplaceInstanceIDWithZero(jsonObject);
+            JsonUtility.FromJsonOverwrite(jsonObject.ToString(), component);
+        }
+        
+        private void ReplaceInstanceIDWithZero(JToken token)
+        {
+            if (token is JProperty jProperty && jProperty.Name == "instanceID")
+            {
+                jProperty.Value = GetCurrentInstanceIDByPreviousInstanceId(Convert.ToInt32(jProperty.Value.ToString()));
+            }
+
+            if (token is JProperty)
+            {
+                foreach (var child in token.Children())
+                {
+                    ReplaceInstanceIDWithZero(child);
+                }
+            }
+            else if (token is JObject)
+            {
+                foreach (var child in token.Children<JProperty>())
+                {
+                    ReplaceInstanceIDWithZero(child);
+                }
+            }
+            else if (token is JArray)
+            {
+                foreach (var child in token.Children())
+                {
+                    ReplaceInstanceIDWithZero(child);
+                }
+            }
+        }
+        
+        private ComponentData SerializeComponent(Component component)
+        {
+            ComponentData data = new()
+            {
+                typeName = component.GetType().AssemblyQualifiedName,
+                instanceId = component.GetInstanceID(),
+            };
+
+            switch (component)
+            {
+                case Transform transform:
+                    int parentInstanceId = 0;
+
+                    if (transform.parent != null) parentInstanceId = transform.parent.gameObject.GetInstanceID();
+
+                    TransformData transformData = new()
+                    {
+                        LocalPosition = transform.localPosition,
+                        LocalRotation = transform.localRotation,
+                        LocalScale = transform.localScale,
+                        ParentInstanceId = parentInstanceId,
+                    };
+                    
+                    data.jsonData = JsonUtility.ToJson(transformData);
+
+                    break;
+                default:
+                    try
+                    {
+                        data.jsonData = JsonUtility.ToJson(component);
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
+
+                    break;
+            }
+
+            return data;
+        }
 
         private IEnumerator LoadRoutine(RootSaverData rootData)
         {
-            for (int i = transform.childCount - 1; i >= 0; i--)
+            if (transform.childCount > 0)
             {
-                Destroy(transform.GetChild(i).gameObject);
-                yield return null;
+                for (int i = transform.childCount - 1; i >= 0; i--)
+                {
+                    Destroy(transform.GetChild(i).gameObject);
+                    yield return null;
+                }
             }
 
             _objects.Clear();
@@ -259,7 +365,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             yield return null;
             LoadComplete();
         }
-
+        
         private IEnumerator LoadObjectRoutine(GameObjectData gameObjectData, Transform parent)
         {
             StartLoad();
@@ -318,7 +424,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
                 try
                 {
                     (ComponentData data, Component component) = _componentsForDeserialization[i];
-                    ComponentSerializer.DeserializeComponent(data, component);
+                    DeserializeComponent(data, component);
                 }
                 catch
                 {

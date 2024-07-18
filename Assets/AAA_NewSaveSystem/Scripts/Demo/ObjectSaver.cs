@@ -9,14 +9,14 @@ namespace AAA_NewSaveSystem.Scripts.Demo
         
         private void Awake()
         {
-            RootSaver.SavingStarted += Save;
-            RootSaver.LoadingStarted += DestroyGameObject;
+            SaveManager.SavingStarted += Save;
+            SaveManager.LoadingStarted += DestroyGameObject;
         }
 
         private void Save()
         {
-            RootSaver.AddGameObjectForSave(gameObject, _saveChildren);
-            RootSaver.SavingStarted -= Save;
+            SaveManager.AddGameObjectForSave(gameObject, _saveChildren);
+            SaveManager.SavingStarted -= Save;
         }
 
         private void DestroyGameObject(bool loadingStarted)
@@ -27,8 +27,8 @@ namespace AAA_NewSaveSystem.Scripts.Demo
 
         private void OnDestroy()
         {
-            RootSaver.SavingStarted -= Save;
-            RootSaver.LoadingStarted -= DestroyGameObject;
+            SaveManager.SavingStarted -= Save;
+            SaveManager.LoadingStarted -= DestroyGameObject;
         }
     }
 }
