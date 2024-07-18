@@ -524,8 +524,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: AAA_NewSaveSystem.Scripts.SaveSystem.RootSaver,
+      - m_Target: {fileID: 2130512143}
+        m_TargetAssemblyTypeName: AAA_NewSaveSystem.Scripts.SaveSystem.Core.SaveManager,
           Assembly-CSharp
         m_MethodName: Load
         m_Mode: 1
@@ -752,8 +752,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: AAA_NewSaveSystem.Scripts.SaveSystem.RootSaver,
+      - m_Target: {fileID: 2130512143}
+        m_TargetAssemblyTypeName: AAA_NewSaveSystem.Scripts.SaveSystem.Core.SaveManager,
           Assembly-CSharp
         m_MethodName: ClearSave
         m_Mode: 1
@@ -1307,8 +1307,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: AAA_NewSaveSystem.Scripts.SaveSystem.RootSaver,
+      - m_Target: {fileID: 2130512143}
+        m_TargetAssemblyTypeName: AAA_NewSaveSystem.Scripts.SaveSystem.Core.SaveManager,
           Assembly-CSharp
         m_MethodName: Save
         m_Mode: 1
@@ -2187,6 +2187,17 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!114 &1918488172 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4752751389441962187, guid: 041135d650aa4754098d8a9707f927cf, type: 3}
+  m_PrefabInstance: {fileID: 872097390}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e5e9ea898284fc79995c04a6ca70290, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2000573227
 GameObject:
   m_ObjectHideFlags: 0
@@ -2232,7 +2243,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7afcb539bdcc48a7ab0fc0287a47d7d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _snakeController: {fileID: 0}
+  _snakeController: {fileID: 1918488172}
 --- !u!114 &2000573230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2275,7 +2286,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 029da4e77cccc7c4e8d975af3ae60abf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SaveName: MySave
+  SaveName: Snake
+  _loadOnStart: 1
   _progress: 0
   _assets:
   - {fileID: 945731102543145928, guid: 041135d650aa4754098d8a9707f927cf, type: 3}
