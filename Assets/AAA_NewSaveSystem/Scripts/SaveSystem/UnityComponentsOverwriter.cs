@@ -43,36 +43,11 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
 
         public static void CopyValues(this Rigidbody a, Rigidbody b)
         {
-            a.isKinematic = b.isKinematic;
-
-            if (a.isKinematic == false)
-            {
-                a.velocity = b.velocity;
-                a.angularVelocity = b.angularVelocity;
-            }
-            
             a.constraints = b.constraints;
-            a.drag = b.drag;
             a.interpolation = b.interpolation;
-            a.mass = b.mass;
-            a.angularDrag = b.angularDrag;
-            a.detectCollisions = b.detectCollisions;
             a.excludeLayers = b.excludeLayers;
-            a.freezeRotation = b.freezeRotation;
             a.includeLayers = b.includeLayers;
-            a.inertiaTensor = b.inertiaTensor;
-            a.sleepThreshold = b.sleepThreshold;
-            a.solverIterations = b.solverIterations;
-            a.useGravity = b.useGravity;
-            a.automaticInertiaTensor = b.automaticInertiaTensor;
-            a.centerOfMass = b.centerOfMass;
             a.collisionDetectionMode = b.collisionDetectionMode;
-            a.inertiaTensorRotation = b.inertiaTensorRotation;
-            a.maxAngularVelocity = b.maxAngularVelocity;
-            a.maxDepenetrationVelocity = b.maxDepenetrationVelocity;
-            a.maxLinearVelocity = b.maxLinearVelocity;
-            a.solverVelocityIterations = b.solverVelocityIterations;
-            a.automaticCenterOfMass = b.automaticCenterOfMass;
         }
         
         public static void CopyValues(this Collider a, Collider b)

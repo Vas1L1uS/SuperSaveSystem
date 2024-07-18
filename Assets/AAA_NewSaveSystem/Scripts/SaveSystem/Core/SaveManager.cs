@@ -5,6 +5,7 @@ using System.IO;
 using AAA_NewSaveSystem.Scripts.SaveSystem.UnityComponentsData;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
@@ -18,7 +19,8 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
         public string SaveName = "MySave";
         
         private static event Action _objectsCreated;
-        
+
+        [SerializeField] private bool _loadOnStart = true;
         [SerializeField] private float _progress;
         [SerializeField] private Object[] _assets;
 
@@ -44,6 +46,12 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             }
             
             _otherGameObjectsForSave.Add((go, saveChildren));
+        }
+
+        [ContextMenu("RestartScene")]
+        public void RestartScene()
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
         [ContextMenu("Save")]
@@ -313,6 +321,33 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
                     data.jsonData = JsonUtility.ToJson(transformData);
 
                     break;
+                case Rigidbody rb:
+                    RigidbodyData rigidbodyData = new()
+                    {
+                        isKinematic = rb.isKinematic,
+                        velocity = rb.velocity,
+                        angularVelocity = rb.angularVelocity,
+                        useGravity = rb.useGravity,
+                        drag = rb.drag,
+                        mass = rb.mass,
+                        angularDrag = rb.angularDrag,
+                        detectCollisions = rb.detectCollisions,
+                        freezeRotation = rb.freezeRotation,
+                        inertiaTensor = rb.inertiaTensor,
+                        sleepThreshold = rb.sleepThreshold,
+                        solverIterations = rb.solverIterations,
+                        automaticInertiaTensor = rb.automaticInertiaTensor,
+                        centerOfMass = rb.centerOfMass,
+                        inertiaTensorRotation = rb.inertiaTensorRotation,
+                        maxAngularVelocity = rb.maxAngularVelocity,
+                        maxDepenetrationVelocity = rb.maxDepenetrationVelocity,
+                        maxLinearVelocity = rb.maxLinearVelocity,
+                        solverVelocityIterations = rb.solverVelocityIterations,
+                        automaticCenterOfMass = rb.automaticCenterOfMass,
+                    };
+                    
+                    data.jsonData = JsonUtility.ToJson(rigidbodyData);
+                    break;
                 default:
                     try
                     {
@@ -406,6 +441,34 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
                 }
                 
                 Component component = newObject.AddComponent(type);
+                
+                if (type == typeof(Rigidbody))
+                {
+                    RigidbodyData rigidbodyData = new();
+                    rigidbodyData = (RigidbodyData)JsonUtility.FromJson(compData.jsonData, rigidbodyData.GetType());
+                    Rigidbody rb = (Rigidbody) component;
+                    rb.isKinematic = true;
+                    rb.useGravity = rigidbodyData.useGravity;
+                    rb.automaticInertiaTensor = rigidbodyData.automaticInertiaTensor;
+                    rb.automaticCenterOfMass = rigidbodyData.automaticCenterOfMass;
+                    rb.drag = rigidbodyData.drag;
+                    rb.mass = rigidbodyData.mass;
+                    rb.angularDrag = rigidbodyData.angularDrag;
+                    rb.inertiaTensor = rigidbodyData.inertiaTensor;
+                    rb.sleepThreshold = rigidbodyData.sleepThreshold;
+                    rb.solverIterations = rigidbodyData.solverIterations;
+                    rb.centerOfMass = rigidbodyData.centerOfMass;
+                    rb.inertiaTensorRotation = rigidbodyData.inertiaTensorRotation;
+                    rb.maxAngularVelocity = rigidbodyData.maxAngularVelocity;
+                    rb.maxDepenetrationVelocity = rigidbodyData.maxDepenetrationVelocity;
+                    rb.maxLinearVelocity = rigidbodyData.maxLinearVelocity;
+                    rb.solverVelocityIterations = rigidbodyData.solverVelocityIterations;
+                    rb.detectCollisions = rigidbodyData.detectCollisions;
+                    rb.freezeRotation = rigidbodyData.freezeRotation;
+                    _componentIndex++;
+                    continue;
+                }
+
                 AddObject(component, compData.instanceId);
                 AddComponentForDeserialization(compData, component);
             }
