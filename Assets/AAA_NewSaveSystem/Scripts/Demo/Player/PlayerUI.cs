@@ -28,7 +28,7 @@ namespace AAA_NewSaveSystem.Scripts.Demo.Player
         
         private void UnsubscribeFromComponents()
         {
-            _snakeController.ScoreChanged -= UpdateScore;
+            if (_snakeController != null) _snakeController.ScoreChanged -= UpdateScore;
         }
         
         private void UpdateScore(int value)

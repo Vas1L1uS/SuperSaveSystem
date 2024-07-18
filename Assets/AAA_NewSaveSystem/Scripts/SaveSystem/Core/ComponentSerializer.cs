@@ -1,19 +1,15 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using AAA_NewSaveSystem.Scripts.SaveSystem.Core;
 using AAA_NewSaveSystem.Scripts.SaveSystem.UnityComponentsData;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
 
-namespace AAA_NewSaveSystem.Scripts.SaveSystem
+namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
 {
     public static class ComponentSerializer
     {
         public static ComponentData SerializeComponent(Component component)
         {
-            ComponentData data = new ComponentData
+            ComponentData data = new()
             {
                 typeName = component.GetType().AssemblyQualifiedName,
                 instanceId = component.GetInstanceID(),
@@ -53,42 +49,11 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
             return data;
         }
 
-        public static void DeserializeComponent(GameObject go, ComponentData data)
+        public static void DeserializeComponent(ComponentData data, Component component)
         {
-            Type type = Type.GetType(data.typeName);
-
-            if (type == null) return;
-
-            if (type == typeof(Transform))
-            {
-                TransformData transformData = new();
-                transformData = (TransformData)JsonUtility.FromJson(data.jsonData, transformData.GetType());
-                GameObject parent = RootSaver.GetGameObjectByPreviousId(transformData.ParentInstanceId);
-                if (parent != null) go.transform.SetParent(parent.transform);
-                go.transform.localPosition = transformData.LocalPosition;
-                go.transform.localRotation = transformData.LocalRotation;
-                go.transform.localScale = transformData.LocalScale;
-                RootSaver.AddObject(go.transform, data.instanceId);
-
-                return;
-            }
-
-            Component component = go.AddComponent(type);
-            RootSaver.AddObject(component, data.instanceId);
-
-            RootSaver.ObjectsCreated += () =>
-            {
-                try
-                {
-                    JObject jsonObject = JObject.Parse(data.jsonData);
-                    ReplaceInstanceIDWithZero(jsonObject);
-                    JsonUtility.FromJsonOverwrite(jsonObject.ToString(), component);
-                }
-                catch
-                {
-                    // ignored
-                }
-            };
+            JObject jsonObject = JObject.Parse(data.jsonData);
+            ReplaceInstanceIDWithZero(jsonObject);
+            JsonUtility.FromJsonOverwrite(jsonObject.ToString(), component);
         }
         
         static void ReplaceInstanceIDWithZero(JToken token)
@@ -98,7 +63,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem
                 jProperty.Value = RootSaver.GetCurrentInstanceIDByPreviousInstanceId(Convert.ToInt32(jProperty.Value.ToString()));
             }
 
-            if (token is JProperty property)
+            if (token is JProperty)
             {
                 foreach (var child in token.Children())
                 {

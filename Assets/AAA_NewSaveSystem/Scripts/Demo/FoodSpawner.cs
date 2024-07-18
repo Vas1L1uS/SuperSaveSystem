@@ -36,7 +36,7 @@ namespace AAA_NewSaveSystem.Scripts.Demo
         
         private void UnsubscribeFromComponents()
         {
-            _picker.Picked -= PickerOnPicked;
+            if (_picker != null) _picker.Picked -= PickerOnPicked;
         }
 
         private void PickerOnPicked(PickableItem item)

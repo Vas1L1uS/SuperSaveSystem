@@ -18,6 +18,7 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
     [Serializable]
     public class RootSaverData
     {
+        public int totalSaveObjects;
         public List<int> assets = new();
         public List<GameObjectData> children = new();
         public List<GameObjectData> otherSavedGameObjects = new();

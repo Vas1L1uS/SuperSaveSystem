@@ -68,7 +68,7 @@ namespace AAA_NewSaveSystem.Scripts.Demo.Player
         
         private void UnsubscribeOnComponents()
         {
-            _playerInput.MovementPressed -= SetDirectionForSnakeMovement;
+            if (_playerInput != null) _playerInput.MovementPressed -= SetDirectionForSnakeMovement;
             _picker.Picked -= Pick;
             _crashTrigger.Crashed -= Dead;
         }

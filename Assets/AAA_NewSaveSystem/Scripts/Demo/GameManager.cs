@@ -28,7 +28,7 @@ namespace AAA_NewSaveSystem.Scripts.Demo
         private void OnDestroy()
         {
             RootSaver.Loaded -= Init;
-            _snakeController.Died -= RestartGame;
+            if (_snakeController != null) _snakeController.Died -= RestartGame;
         }
     }
 }

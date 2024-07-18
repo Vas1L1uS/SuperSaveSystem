@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using AAA_NewSaveSystem.Scripts.SaveSystem.UnityComponentsData;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -10,21 +11,27 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
     public class RootSaver : MonoBehaviour
     {
         public static Action<bool> LoadingStarted;
-        public static Action ObjectsCreated;
         public static Action<bool> Loaded;
         public static Action SavingStarted;
 
         public string SaveName = "MySave";
         
-        [SerializeField] private int _count;
+        private static Action _objectsCreated;
+
+        [SerializeField] private float _progress;
         [SerializeField] private Object[] _assets;
 
         private static readonly Dictionary<int, Object> _objects = new();
         private static readonly List<(GameObject gameObject, bool saveChildren)> _otherGameObjectsForSave = new();
+        private static readonly List<(ComponentData, Component)> _componentsForDeserialization = new();
 
-        private int _totalObjects;
-        private int _currentIndex;
+        private int _totalSavedObjects;
+        private int _objectIndex;
         private int _componentIndex;
+        private float _deltaTime;
+        private int _count;
+
+        private Coroutine _deserializeComponentsCoroutine;
 
         public static int GetCurrentInstanceIDByPreviousInstanceId(int id)
         {
@@ -39,23 +46,6 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             }
         }
 
-        public static GameObject GetGameObjectByPreviousId(int id)
-        {
-            if (_objects.ContainsKey(id) == false) return null;
-            
-            if (_objects[id] is GameObject go)
-            {
-                return go;
-            }
-
-            return null;
-        }
-
-        public static void AddObject(Object obj, int id)
-        {
-            _objects.Add(id, obj);
-        }
-
         public static void AddGameObjectForSave(GameObject go, bool saveChildren)
         {
             for (int i = 0; i < _otherGameObjectsForSave.Count; i++)
@@ -67,12 +57,12 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             
             _otherGameObjectsForSave.Add((go, saveChildren));
         }
-        
+
         [ContextMenu("Save")]
         public void Save()
         {
             SavingStarted?.Invoke();
-            _currentIndex = 0;
+            _objectIndex = 0;
             _componentIndex = 0;
             
             string savePath = Path.Combine(Application.persistentDataPath, $"{SaveName}.json");
@@ -97,8 +87,11 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
                 otherGameObjectsForSave.Add(SaveObject(_otherGameObjectsForSave[i].gameObject, _otherGameObjectsForSave[i].saveChildren));
             }
 
+            _totalSavedObjects = _objectIndex + _componentIndex;
+            
             RootSaverData rootSaverData = new()
             {
+                totalSaveObjects = _totalSavedObjects,
                 children = children,
                 assets = assets,
                 otherSavedGameObjects = otherGameObjectsForSave
@@ -106,7 +99,48 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
 
             string json = JsonUtility.ToJson(rootSaverData);
             File.WriteAllText(savePath, json);
-            Debug.Log($"Saved {_currentIndex} GameObjects, {_componentIndex} Components");
+            Debug.Log($"Saved {_objectIndex} GameObjects, {_componentIndex} Components");
+        }
+        
+        [ContextMenu("Load")]
+        public void Load()
+        {
+            _deltaTime = Time.time;
+            StopAllCoroutines();
+            _objects.Clear();
+            
+            _count = 0;
+            string savePath = Path.Combine(Application.persistentDataPath, $"{SaveName}.json");
+
+            if (!File.Exists(savePath))
+            {
+                LoadingStarted?.Invoke(false);
+                Loaded?.Invoke(false);
+                return;
+            }
+            
+            LoadingStarted?.Invoke(true);
+            
+            for (int i = 0; i < _otherGameObjectsForSave.Count; i++)
+            {
+                Destroy(_otherGameObjectsForSave[i].gameObject);
+            }
+            
+            _otherGameObjectsForSave.Clear();
+
+            string json = File.ReadAllText(savePath);
+            RootSaverData rootData = JsonUtility.FromJson<RootSaverData>(json);
+
+            _totalSavedObjects = rootData.totalSaveObjects;
+            _objectIndex = 0;
+            _componentIndex = 0;
+
+            for (int i = transform.childCount - 1; i >= 0; i--)
+            {
+                Destroy(transform.GetChild(i).gameObject);
+            }
+
+            StartCoroutine(LoadRoutine(rootData));
         }
 
         [ContextMenu("ClearSave")]
@@ -114,6 +148,21 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
         {
             string savePath = Path.Combine(Application.persistentDataPath, $"{SaveName}.json");
             File.Delete(savePath);
+        }
+        
+        private void Start()
+        {
+            Loaded += result =>
+            {
+                _deltaTime = Time.time - _deltaTime;
+                Debug.Log(result
+                    ? $"Loaded {_objectIndex} GameObjects, {_componentIndex} Components. Loading time {_deltaTime} seconds."
+                    : $"Save file not found");
+            };
+
+            _objectsCreated += DeserializeComponents;
+            
+            Load();
         }
 
         private void StartLoad()
@@ -127,41 +176,19 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
 
             if (_count == 0)
             {
-                StartCoroutine(StagesRoutine());
+                _objectsCreated?.Invoke();
             }
         }
 
-        private IEnumerator StagesRoutine()
+        private void DeserializeComponents()
         {
-            yield return null;
-            ObjectsCreated?.Invoke();
-            yield return null;
-            yield return null;
-            yield return null;
-            Loaded?.Invoke(true);
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            _objects.Clear();
-        }
-
-        private void Start()
-        {
-            Loaded += result =>
-            {
-                Debug.Log(result
-                    ? $"Loaded {_currentIndex} GameObjects, {_componentIndex} Components"
-                    : $"Save file not found");
-            };
-            
-            Load();
+            if (_deserializeComponentsCoroutine != null) StopCoroutine(_deserializeComponentsCoroutine);
+            _deserializeComponentsCoroutine = StartCoroutine(DeserializeComponentsRoutine());
         }
 
         private GameObjectData SaveObject(GameObject go, bool saveChildren)
         {
-            _currentIndex++;
+            _objectIndex++;
             List<GameObjectData> children = new();
 
             GameObjectData gameObjectData = new()
@@ -192,44 +219,27 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
 
             return gameObjectData;
         }
-
-        [ContextMenu("Load")]
-        public void Load()
+        
+        private GameObject GetGameObjectByPreviousId(int id)
         {
-            StopAllCoroutines();
-            _objects.Clear();
+            if (_objects.ContainsKey(id) == false) return null;
             
-            _count = 0;
-            string savePath = Path.Combine(Application.persistentDataPath, $"{SaveName}.json");
-
-            if (!File.Exists(savePath))
+            if (_objects[id] is GameObject go)
             {
-                LoadingStarted?.Invoke(false);
-                Loaded?.Invoke(false);
-                return;
-            }
-            
-            LoadingStarted?.Invoke(true);
-            
-            for (int i = 0; i < _otherGameObjectsForSave.Count; i++)
-            {
-                Destroy(_otherGameObjectsForSave[i].gameObject);
-            }
-            
-            _otherGameObjectsForSave.Clear();
-
-            string json = File.ReadAllText(savePath);
-            RootSaverData rootData = JsonUtility.FromJson<RootSaverData>(json);
-
-            _currentIndex = 0;
-            _componentIndex = 0;
-
-            for (int i = transform.childCount - 1; i >= 0; i--)
-            {
-                Destroy(transform.GetChild(i).gameObject);
+                return go;
             }
 
-            StartCoroutine(LoadRoutine(rootData));
+            return null;
+        }
+
+        private void AddObject(Object obj, int id)
+        {
+            _objects.Add(id, obj);
+        }
+        
+        private void AddComponentForDeserialization(ComponentData componentData, Component component)
+        {
+            _componentsForDeserialization.Add((componentData, component));
         }
 
         private IEnumerator LoadRoutine(RootSaverData rootData)
@@ -240,27 +250,28 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             {
                 _objects.Add(rootData.assets[i], _assets[i]);
             }
-            
-            foreach (GameObjectData child in rootData.children)
+
+            for (int i = 0; i < rootData.children.Count; i++)
             {
-                StartCoroutine(LoadObject(child, transform));
-                yield return null;
+                GameObjectData child = rootData.children[i];
+                StartCoroutine(LoadObjectRoutine(child, transform));
+                if (i % 50 == 0) yield return null;
             }
-            
-            foreach (GameObjectData other in rootData.otherSavedGameObjects)
+
+            for (int i = 0; i < rootData.otherSavedGameObjects.Count; i++)
             {
-                StartCoroutine(LoadObject(other, null));
-                yield return null;
+                StartCoroutine(LoadObjectRoutine(rootData.otherSavedGameObjects[i], null));
+                if (i % 50 == 0) yield return null;
             }
-            
+
             yield return null;
             LoadComplete();
         }
 
-        private IEnumerator LoadObject(GameObjectData gameObjectData, Transform parent)
+        private IEnumerator LoadObjectRoutine(GameObjectData gameObjectData, Transform parent)
         {
             StartLoad();
-            _currentIndex++;
+            _objectIndex++;
             GameObject newObject = new();
             AddObject(newObject, gameObjectData.instanceId);
             newObject.name = gameObjectData.name;
@@ -270,24 +281,80 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
 
             foreach (GameObjectData child in gameObjectData.children)
             {
-                StartCoroutine(LoadObject(child, newObject.transform));
-                yield return null;
+                StartCoroutine(LoadObjectRoutine(child, newObject.transform));
+                
+                if (_objectIndex % 50 == 0) yield return null;
+                _progress = (float)((float)(_objectIndex + _componentIndex) / (float)_totalSavedObjects);
             }
 
             foreach (ComponentData compData in gameObjectData.components)
             {
-                ComponentSerializer.DeserializeComponent(newObject, compData);
-                _componentIndex++;
+                Type type = Type.GetType(compData.typeName);
+
+                if (type == null) continue;
+
+                if (type == typeof(Transform))
+                {
+                    TransformData transformData = new();
+                    transformData = (TransformData)JsonUtility.FromJson(compData.jsonData, transformData.GetType());
+                    GameObject objParent = GetGameObjectByPreviousId(transformData.ParentInstanceId);
+                    if (objParent != null) newObject.transform.SetParent(objParent.transform);
+                    newObject.transform.localPosition = transformData.LocalPosition;
+                    newObject.transform.localRotation = transformData.LocalRotation;
+                    newObject.transform.localScale = transformData.LocalScale;
+                    AddObject(newObject.transform, compData.instanceId);
+                    _componentIndex++;
+                    continue;
+                }
+                
+                Component component = newObject.AddComponent(type);
+                AddObject(component, compData.instanceId);
+                AddComponentForDeserialization(compData, component);
             }
             
             newObject.SetActive(gameObjectData.activeSelf);
-            yield return null;
+            _progress = (float)((float)(_objectIndex + _componentIndex) / (float)_totalSavedObjects);
             LoadComplete();
+        }
+
+        private IEnumerator DeserializeComponentsRoutine()
+        {
+            yield return null;
+            
+            for (int i = 0; i < _componentsForDeserialization.Count; i++)
+            {
+                try
+                {
+                    (ComponentData data, Component component) = _componentsForDeserialization[i];
+                    ComponentSerializer.DeserializeComponent(data, component);
+                }
+                catch
+                {
+                    // ignored
+                }
+                
+                _componentIndex++;
+                if (i % 1000 == 0) yield return null;
+                _progress = (float)((float)(_objectIndex + _componentIndex) / (float)_totalSavedObjects);
+            }
+            
+            _componentsForDeserialization.Clear();
+            Loaded?.Invoke(true);
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+            _objects.Clear();
         }
 
         private void OnDestroy()
         {
+            StopAllCoroutines();
             Loaded = null;
+            SavingStarted = null;
+            LoadingStarted = null;
+            _objectsCreated = null;
         }
     }
 }
