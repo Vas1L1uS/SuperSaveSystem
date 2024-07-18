@@ -1,5 +1,4 @@
 using System;
-using AAA_NewSaveSystem.Scripts.SaveSystem;
 using AAA_NewSaveSystem.Scripts.SaveSystem.Core;
 using UnityEngine;
 
@@ -69,8 +68,8 @@ namespace AAA_NewSaveSystem.Scripts.Demo.Player
         private void UnsubscribeOnComponents()
         {
             if (_playerInput != null) _playerInput.MovementPressed -= SetDirectionForSnakeMovement;
-            _picker.Picked -= Pick;
-            _crashTrigger.Crashed -= Dead;
+            if (_picker != null) _picker.Picked -= Pick;
+            if (_crashTrigger != null) _crashTrigger.Crashed -= Dead;
         }
 
         private void Dead()

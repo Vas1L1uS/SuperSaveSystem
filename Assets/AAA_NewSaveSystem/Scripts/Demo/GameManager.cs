@@ -16,7 +16,6 @@ namespace AAA_NewSaveSystem.Scripts.Demo
 
         private void Init(bool loaded)
         {
-            Debug.Log("Init");
             _snakeController.Died += RestartGame;
         }
 

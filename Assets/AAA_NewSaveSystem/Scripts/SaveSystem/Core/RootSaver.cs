@@ -107,8 +107,6 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
         {
             _deltaTime = Time.time;
             StopAllCoroutines();
-            _objects.Clear();
-            
             _count = 0;
             string savePath = Path.Combine(Application.persistentDataPath, $"{SaveName}.json");
 
@@ -120,25 +118,11 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
             }
             
             LoadingStarted?.Invoke(true);
-            
-            for (int i = 0; i < _otherGameObjectsForSave.Count; i++)
-            {
-                Destroy(_otherGameObjectsForSave[i].gameObject);
-            }
-            
-            _otherGameObjectsForSave.Clear();
-
             string json = File.ReadAllText(savePath);
             RootSaverData rootData = JsonUtility.FromJson<RootSaverData>(json);
-
             _totalSavedObjects = rootData.totalSaveObjects;
             _objectIndex = 0;
             _componentIndex = 0;
-
-            for (int i = transform.childCount - 1; i >= 0; i--)
-            {
-                Destroy(transform.GetChild(i).gameObject);
-            }
 
             StartCoroutine(LoadRoutine(rootData));
         }
@@ -244,6 +228,14 @@ namespace AAA_NewSaveSystem.Scripts.SaveSystem.Core
 
         private IEnumerator LoadRoutine(RootSaverData rootData)
         {
+            for (int i = transform.childCount - 1; i >= 0; i--)
+            {
+                Destroy(transform.GetChild(i).gameObject);
+                yield return null;
+            }
+
+            _objects.Clear();
+            _otherGameObjectsForSave.Clear();
             StartLoad();
 
             for (int i = 0; i < rootData.assets.Count; i++)
