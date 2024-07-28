@@ -16,13 +16,14 @@ namespace Vas1L1uS.QuickSaveGame.Core.Scripts.Core
         public static event Action<bool> LoadFinished;
         public static event Action SaveStarted;
 
-        public float Progress => _progress;
+        public static SaveManager Instance => _instance;
+        public float LoadProgress => _loadProgress;
         
         public string SaveName = "MySave";
 
         private static event Action ObjectsCreated;
         
-        [SerializeField] private float _progress;
+        [SerializeField] private float _loadProgress;
         [SerializeField] private bool _enableDebugLogs = true;
         [SerializeField] private bool _loadOnAwake = true;
         [SerializeField] private Object[] _assets;
@@ -422,7 +423,7 @@ namespace Vas1L1uS.QuickSaveGame.Core.Scripts.Core
                 StartCoroutine(LoadObjectRoutine(child, newObject.transform));
                 
                 if (_objectIndex % 50 == 0) yield return null;
-                _progress = (float)((float)(_objectIndex + _componentIndex) / (float)_totalSavedObjects);
+                _loadProgress = (float)((float)(_objectIndex + _componentIndex) / (float)_totalSavedObjects);
             }
 
             foreach (ComponentData compData in gameObjectData.components)
@@ -479,7 +480,7 @@ namespace Vas1L1uS.QuickSaveGame.Core.Scripts.Core
             }
             
             newObject.SetActive(gameObjectData.activeSelf);
-            _progress = (float)((float)(_objectIndex + _componentIndex) / (float)_totalSavedObjects);
+            _loadProgress = (float)((float)(_objectIndex + _componentIndex) / (float)_totalSavedObjects);
             LoadComplete();
         }
 
@@ -501,7 +502,7 @@ namespace Vas1L1uS.QuickSaveGame.Core.Scripts.Core
                 
                 _componentIndex++;
                 if (i % 1000 == 0) yield return null;
-                _progress = (float)((float)(_objectIndex + _componentIndex) / (float)_totalSavedObjects);
+                _loadProgress = (float)((float)(_objectIndex + _componentIndex) / (float)_totalSavedObjects);
             }
             
             _componentsForDeserialization.Clear();
