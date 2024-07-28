@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/AAA_NewSaveSystem/Scene/SnakeGame.unity
+    path: Assets/SaveSystem/Examples/SnakeGame/Scene/SnakeGame.unity
     guid: adff357db2eae74408874cfc2fdd740c
   m_configObjects: {}
