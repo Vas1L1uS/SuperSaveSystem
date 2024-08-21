@@ -23,10 +23,12 @@ namespace Vas1L1uS.QuickSaveGame.Core.Scripts.Core
 
         private static event Action ObjectsCreated;
         
-        [SerializeField] private float _loadProgress;
-        [SerializeField] private bool _enableDebugLogs = true;
         [SerializeField] private bool _loadOnAwake = true;
+        [SerializeField] private SaveType _saveType;
         [SerializeField] private Object[] _assets;
+        [SerializeField] private bool _enableDebugLogs = true;
+        [Header("Debug")]
+        [SerializeField] private float _loadProgress;
 
         private static readonly Dictionary<int, Object> _objects = new();
         private static readonly List<(GameObject gameObject, bool saveChildren)> _otherGameObjectsForSave = new();
@@ -65,7 +67,6 @@ namespace Vas1L1uS.QuickSaveGame.Core.Scripts.Core
             _objectIndex = 0;
             _componentIndex = 0;
             
-            string savePath = Path.Combine(Application.persistentDataPath, $"{SaveName}.json");
             List<GameObjectData> children = new();
 
             for (int i = 0; i < transform.childCount; i++)
@@ -98,7 +99,19 @@ namespace Vas1L1uS.QuickSaveGame.Core.Scripts.Core
             };
 
             string json = JsonUtility.ToJson(rootSaverData);
-            File.WriteAllText(savePath, json);
+            
+            switch (_saveType)
+            {
+                case SaveType.PlayerPrefs:
+                    PlayerPrefs.SetString(SaveName, json);
+                    break;
+                case SaveType.PersistentDataPath:
+                    string savePath = Path.Combine(Application.persistentDataPath, $"{SaveName}.json");
+                    File.WriteAllText(savePath, json);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
             
             if (_enableDebugLogs )Debug.Log($"Saved {_objectIndex} GameObjects, {_componentIndex} Components");
         }
@@ -109,22 +122,41 @@ namespace Vas1L1uS.QuickSaveGame.Core.Scripts.Core
             _deltaTime = Time.time;
             StopAllCoroutines();
             _count = 0;
-            string savePath = Path.Combine(Application.persistentDataPath, $"{SaveName}.json");
+            string json;
 
-            if (!File.Exists(savePath))
+            switch (_saveType)
             {
-                LoadStarted?.Invoke(false);
-                LoadFinished?.Invoke(false);
-                return;
+                case SaveType.PlayerPrefs:
+                    if (!PlayerPrefs.HasKey(SaveName))
+                    {
+                        LoadStarted?.Invoke(false);
+                        LoadFinished?.Invoke(false);
+                        return;
+                    }
+
+                    json = PlayerPrefs.GetString(SaveName);
+                    break;
+                case SaveType.PersistentDataPath:
+                    string savePath = Path.Combine(Application.persistentDataPath, $"{SaveName}.json");
+
+                    if (!File.Exists(savePath))
+                    {
+                        LoadStarted?.Invoke(false);
+                        LoadFinished?.Invoke(false);
+                        return;
+                    }
+                    
+                    json = File.ReadAllText(savePath);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
             
             LoadStarted?.Invoke(true);
-            string json = File.ReadAllText(savePath);
             RootSaverData rootData = JsonUtility.FromJson<RootSaverData>(json);
             _totalSavedObjects = rootData.totalSaveObjects;
             _objectIndex = 0;
             _componentIndex = 0;
-
             StartCoroutine(LoadRoutine(rootData));
         }
 
@@ -522,6 +554,12 @@ namespace Vas1L1uS.QuickSaveGame.Core.Scripts.Core
             SaveStarted = null;
             LoadStarted = null;
             ObjectsCreated = null;
+        }
+
+        public enum SaveType
+        {
+            PlayerPrefs,
+            PersistentDataPath
         }
     }
 }
